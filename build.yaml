@@ -1,0 +1,9 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        generate_for:
+          include:
+            - lib/data/model/*.dart
+        options:
+          any_map: true
