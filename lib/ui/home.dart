@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:today/ui/ui_base.dart';
+import 'package:today/ui/debug.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -73,8 +75,6 @@ class __HomeBodyState extends State<_HomeBody>
       );
     }).toList();
 
-    debugPrint("top: ${MediaQuery.of(context).padding.top}");
-
     return Column(
       children: <Widget>[
         Container(
@@ -115,7 +115,15 @@ class __HomeBodyState extends State<_HomeBody>
                             SizedBox(
                               width: 10,
                             ),
-                            Image.asset("images/ic_navbar_scan.png"),
+                            GestureDetector(
+                                onTap: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                    return DebugPage();
+                                  }));
+                                },
+                                child:
+                                    Image.asset("images/ic_navbar_scan.png")),
                             SizedBox(
                               width: 10,
                             )
@@ -144,23 +152,254 @@ class __HomeBodyState extends State<_HomeBody>
                 delegate: SliverChildBuilderDelegate((context, index) {
                   RecommendItem item = _recommendList[index];
                   RecommendBodyItem bodyItem = item.item;
+                  Topic topic = bodyItem.topic;
 
-                  return Container(
-                    color: Colors.white,
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(bottom: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        (bodyItem.content == null || bodyItem.content.isEmpty
-                            ? SizedBox(
-                                width: 0,
-                                height: 0,
-                              )
-                            : Text(bodyItem.content)),
-                        _createContentWidget(bodyItem),
-                      ],
-                    ),
+                  Comment topComment = bodyItem.topComment;
+
+                  List<UserInfo> involvedUsers = topic.involvedUsers.users;
+
+                  List<Widget> involvedUsersWidget = [];
+
+                  for (UserInfo user in involvedUsers) {
+                    involvedUsersWidget.add(Positioned(
+                        right: involvedUsers.indexOf(user) * 30.0,
+                        child: AppNetWorkImage(
+                          src: user.avatarImage.thumbnailUrl,
+                          width: 36,
+                          height: 36,
+                          borderRadius: BorderRadius.circular(18),
+                        )));
+                  }
+
+                  return Column(
+                    children: <Widget>[
+                      Container(
+                        height: 70,
+                        alignment: Alignment.center,
+                        color: Colors.grey[50],
+                        padding: EdgeInsets.all(10),
+                        child: Row(
+                          children: <Widget>[
+                            AppNetWorkImage(
+                              src: topic.squarePicture.thumbnailUrl,
+                              width: 50,
+                              height: 50,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  topic.content,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .primaryTextTheme
+                                      .subtitle,
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Text(topic.subscribersDescription,
+                                    style: TextStyle(
+                                        color: Colors.green, fontSize: 10)),
+                              ],
+                            ),
+                            Spacer(),
+                            LimitedBox(
+                                maxWidth: 100,
+                                child: Stack(
+                                  children: involvedUsersWidget,
+                                  alignment: Alignment.center,
+                                )),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Image.asset('images/ic_common_arrow_right.png')
+                          ],
+                        ),
+                      ),
+                      LayoutBuilder(
+                        builder: (context, layout) {
+                          return Container(
+                            width: layout.maxWidth,
+                            color: Colors.white,
+                            padding: EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                (bodyItem.content == null ||
+                                        bodyItem.content.trim().isEmpty
+                                    ? SizedBox()
+                                    : Builder(builder: (context) {
+                                        TextSpan content;
+                                        if (bodyItem.urlsInText != null &&
+                                            bodyItem.urlsInText.isNotEmpty) {
+                                          List<TextSpan> child = [];
+
+                                          List<int> indexList = [];
+
+                                          for (UrlsInText text
+                                              in bodyItem.urlsInText) {
+                                            indexList.add(bodyItem.content
+                                                .indexOf(RegExp(text.title)));
+                                          }
+
+                                          debugPrint("indexs = $indexList");
+
+                                          int cur = 0;
+                                          int indexPos = 0;
+                                          while (indexPos < indexList.length) {
+                                            if (indexList[indexPos] > cur) {
+                                              child.add(TextSpan(
+                                                  text: bodyItem.content
+                                                      .substring(
+                                                          cur,
+                                                          indexList[
+                                                              indexPos])));
+                                              cur = indexList[indexPos];
+                                            } else {
+                                              int startIndex =
+                                                  indexList[indexPos];
+                                              int endIndex = startIndex +
+                                                  bodyItem.urlsInText[indexPos]
+                                                      .title.length;
+
+                                              child.add(TextSpan(
+                                                  text: bodyItem.content
+                                                      .substring(
+                                                          startIndex, endIndex),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .body1
+                                                      .merge(TextStyle(
+                                                          color:
+                                                              Colors.blue))));
+                                              cur = endIndex;
+                                              indexPos++;
+                                            }
+                                          }
+
+                                          if (cur < bodyItem.content.length) {
+                                            child.add(TextSpan(
+                                                text: bodyItem.content
+                                                    .substring(
+                                                        cur,
+                                                        bodyItem
+                                                            .content.length)));
+                                          }
+
+                                          content = TextSpan(
+                                              children: child,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .body1);
+                                        } else {
+                                          content = TextSpan(
+                                              text: bodyItem.content,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .body1);
+                                        }
+
+                                        return Text.rich(content);
+                                      })),
+                                _createContentWidget(bodyItem),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      (topComment == null
+                          ? SizedBox(
+                              height: 10,
+                            )
+                          : Container(
+                              color: Colors.grey[50],
+                              margin: EdgeInsets.only(bottom: 10),
+                              padding: EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Image.asset(
+                                          'images/ic_comment_popular.png'),
+                                      Text(
+                                        "${topComment.likeCount} 赞",
+                                        style: TextStyle(
+                                            color: AppColors.normalTextColor,
+                                            fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  Builder(builder: (context) {
+                                    TapGestureRecognizer tap =
+                                        TapGestureRecognizer();
+                                    tap.onTap = () {
+                                      Toast.show(
+                                          topComment.user.screenName, context);
+                                    };
+                                    TextSpan child = TextSpan(
+                                        text: '：${topComment.content}',
+                                        style: TextStyle(
+                                            color: AppColors.primaryTextColor));
+
+                                    TextSpan content = TextSpan(
+                                        text: topComment.user.screenName,
+                                        style: TextStyle(color: Colors.blue),
+                                        recognizer: tap,
+                                        children: [child]);
+
+                                    return Text.rich(
+                                      content,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    );
+                                  }),
+                                  LayoutBuilder(builder: (context, layout) {
+                                    if (topComment.pictures == null ||
+                                        topComment.pictures.isEmpty)
+                                      return SizedBox();
+
+                                    debugPrint(
+                                        "topComent picture: ${topComment.pictures}");
+
+                                    double width = topComment
+                                        .pictures.first.width
+                                        .toDouble();
+                                    double height = topComment
+                                        .pictures.first.height
+                                        .toDouble();
+
+                                    while (width > layout.maxWidth ||
+                                        height > 200) {
+                                      width /= 2;
+                                      height /= 2;
+                                    }
+
+                                    return Container(
+                                      margin: EdgeInsets.only(top: 10),
+                                      child: AppNetWorkImage(
+                                        src: topComment
+                                            .pictures.first.thumbnailUrl,
+                                        width: width,
+                                        height: height,
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ))
+                    ],
                   );
                 }, childCount: _recommendList.length),
               )
@@ -195,17 +434,19 @@ class __HomeBodyState extends State<_HomeBody>
         margin: EdgeInsets.only(top: 5),
         child: LayoutBuilder(builder: (context, constraints) {
           debugPrint(
-              "maxWidth = ${constraints.maxWidth}; maxHeight = ${constraints.maxHeight}");
+              "${bodyItem.content}: maxWidth = ${constraints.maxWidth}; maxHeight = ${constraints.maxHeight}");
+          debugPrint("vidoe img: ${video.image.thumbnailUrl}");
           return SizedBox(
             width: constraints.maxWidth,
             height: constraints.maxWidth.toDouble() / 2,
             child: Stack(
               children: <Widget>[
                 AppNetWorkImage(
-                  src: video.image.thumbnailUrl,
+                  src: '${video.image.thumbnailUrl}.jpg',
                   fit: BoxFit.fitWidth,
                   width: constraints.maxWidth,
                   alignment: Alignment.centerLeft,
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 Align(
                   child:
@@ -251,7 +492,8 @@ class __HomeBodyState extends State<_HomeBody>
                   height /= 2;
                 }
 
-                debugPrint("width = $width; height = $height");
+                debugPrint(
+                    "${bodyItem.content}: width = $width; height = $height");
 
                 return AppNetWorkImage(
                   src: pictures.single.thumbnailUrl,
@@ -270,8 +512,14 @@ class __HomeBodyState extends State<_HomeBody>
         if (pictures.length == 4) {
           axisCount = 2;
         }
+
         return GridView.builder(
           shrinkWrap: true,
+          padding: EdgeInsets.only(
+              top:
+                  ((bodyItem.content == null || bodyItem.content.trim().isEmpty)
+                      ? 0
+                      : 10)),
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: axisCount,

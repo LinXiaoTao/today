@@ -79,6 +79,8 @@ class RecommendBodyItem {
 
   final String content;
 
+  final List<UrlsInText> urlsInText;
+
   /// NORMAL
   final String status;
 
@@ -117,6 +119,7 @@ class RecommendBodyItem {
       this.id,
       this.type,
       this.content,
+      this.urlsInText,
       this.status,
       this.isCommentForbidden,
       this.likeCount,
@@ -252,4 +255,20 @@ class InvolvedUsers {
   factory InvolvedUsers.fromJson(Map json) => _$InvolvedUsersFromJson(json);
 
   Map<String, dynamic> toJson() => _$InvolvedUsersToJson(this);
+}
+
+@JsonSerializable()
+class UrlsInText {
+  final String title;
+  final String originalUrl;
+  final String url;
+
+  /// hashtag
+  final String type;
+
+  UrlsInText(this.title, this.originalUrl, this.url, this.type);
+
+  factory UrlsInText.fromJson(Map json) => _$UrlsInTextFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UrlsInTextToJson(this);
 }

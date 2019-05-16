@@ -30,7 +30,7 @@ class AppNetWorkImage extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-          borderRadius: borderRadius ?? BorderRadius.circular(5),
+          borderRadius: borderRadius ?? BorderRadius.circular(2),
           image: DecorationImage(
               fit: fit,
               alignment: alignment,

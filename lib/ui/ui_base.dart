@@ -73,3 +73,15 @@ class NormalRefresh extends StatelessWidget {
     );
   }
 }
+
+class AppColors {
+  AppColors._();
+
+  static final primaryTextColor = Color(0xFF333333);
+
+  static final normalTextColor = Color(0xFF666666);
+}
+
+class AppDimens {
+  AppDimens._();
+}

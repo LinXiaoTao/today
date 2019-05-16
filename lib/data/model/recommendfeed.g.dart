@@ -79,6 +79,9 @@ RecommendBodyItem _$RecommendBodyItemFromJson(Map json) {
       json['id'] as String,
       json['type'] as String,
       json['content'] as String,
+      (json['urlsInText'] as List)
+          ?.map((e) => e == null ? null : UrlsInText.fromJson(e as Map))
+          ?.toList(),
       json['status'] as String,
       json['isCommentForbidden'] as bool,
       json['likeCount'] as int,
@@ -108,6 +111,7 @@ Map<String, dynamic> _$RecommendBodyItemToJson(RecommendBodyItem instance) =>
       'id': instance.id,
       'type': instance.type,
       'content': instance.content,
+      'urlsInText': instance.urlsInText,
       'status': instance.status,
       'isCommentForbidden': instance.isCommentForbidden,
       'likeCount': instance.likeCount,
@@ -201,3 +205,16 @@ InvolvedUsers _$InvolvedUsersFromJson(Map json) {
 
 Map<String, dynamic> _$InvolvedUsersToJson(InvolvedUsers instance) =>
     <String, dynamic>{'users': instance.users};
+
+UrlsInText _$UrlsInTextFromJson(Map json) {
+  return UrlsInText(json['title'] as String, json['originalUrl'] as String,
+      json['url'] as String, json['type'] as String);
+}
+
+Map<String, dynamic> _$UrlsInTextToJson(UrlsInText instance) =>
+    <String, dynamic>{
+      'title': instance.title,
+      'originalUrl': instance.originalUrl,
+      'url': instance.url,
+      'type': instance.type
+    };

@@ -270,6 +270,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.3.0"
+  json_model:
+    dependency: "direct dev"
+    description:
+      name: json_model
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.0.2"
   json_serializable:
     dependency: "direct dev"
     description:
