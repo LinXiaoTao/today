@@ -15,6 +15,10 @@ UserInfo _$UserInfoFromJson(Map json) {
       json['avatarImage'] == null
           ? null
           : UserAvatar.fromJson(json['avatarImage'] as Map),
+      (json['trailingIcons'] as List)
+              ?.map((e) => e == null ? null : TrailingIcons.fromJson(e as Map))
+              ?.toList() ??
+          [],
       json['statsCount'] == null
           ? null
           : StatsCount.fromJson(json['statsCount'] as Map),
@@ -41,6 +45,7 @@ Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
       'createdAt': instance.createdAt,
       'isVerified': instance.isVerified,
       'avatarImage': instance.avatarImage,
+      'trailingIcons': instance.trailingIcons,
       'statsCount': instance.statsCount,
       'id': instance.id,
       'preferences': instance.preferences,
@@ -152,3 +157,10 @@ Background _$BackgroundFromJson(Map json) {
 
 Map<String, dynamic> _$BackgroundToJson(Background instance) =>
     <String, dynamic>{'picUrl': instance.picUrl};
+
+TrailingIcons _$TrailingIconsFromJson(Map json) {
+  return TrailingIcons(json['url'] as String, json['picUrl'] as String);
+}
+
+Map<String, dynamic> _$TrailingIconsToJson(TrailingIcons instance) =>
+    <String, dynamic>{'url': instance.url, 'picUrl': instance.picUrl};

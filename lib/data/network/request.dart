@@ -81,6 +81,32 @@ class ApiRequest {
     });
   }
 
+  /// 我的圈子
+  static Future<ShortcutsData> shortcutsList() async {
+    return _dio.get('/1.0/shortcuts/list').then((value) {
+      return ShortcutsData.fromJson(value.data['data']);
+    });
+  }
+
+  /// 搜索 placeholder
+  static Future<SearchPlaceholder> searchPlaceholder() async {
+    return _dio.post('/1.0/configs/appGet', data: {
+      'keys': ['searchPlaceholder']
+    }).then((value) {
+      return SearchPlaceholder.fromJson(
+          value.data['data']['searchPlaceholder']);
+    });
+  }
+
+  /// 发布按钮样式
+  static Future<CentralEntry> centralEntry() async {
+    return _dio.post('/1.0/configs/appGet', data: {
+      'keys': ['centralEntry']
+    }).then((value) {
+      return CentralEntry.fromJson(value.data['data']);
+    });
+  }
+
   /// 刷新 token
   static Future<bool> refreshToken() async {
     return _dio

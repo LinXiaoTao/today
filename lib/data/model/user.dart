@@ -15,6 +15,9 @@ class UserInfo {
 
   final UserAvatar avatarImage;
 
+  @JsonKey(defaultValue: [])
+  final List<TrailingIcons> trailingIcons;
+
   final StatsCount statsCount;
 
   final String id;
@@ -53,6 +56,7 @@ class UserInfo {
       this.createdAt,
       this.isVerified,
       this.avatarImage,
+      this.trailingIcons,
       this.statsCount,
       this.id,
       this.preferences,
@@ -185,4 +189,16 @@ class Background {
   factory Background.fromJson(Map json) => _$BackgroundFromJson(json);
 
   Map<String, dynamic> toJson() => _$BackgroundToJson(this);
+}
+
+@JsonSerializable()
+class TrailingIcons {
+  final String url;
+  final String picUrl;
+
+  TrailingIcons(this.url, this.picUrl);
+
+  factory TrailingIcons.fromJson(Map json) => _$TrailingIconsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TrailingIconsToJson(this);
 }

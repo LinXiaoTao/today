@@ -4,3 +4,6 @@ export 'package:today/data/model/comment.dart';
 export 'package:today/data/model/picture.dart';
 export 'package:today/data/model/recommendfeed.dart';
 export 'package:today/data/model/video.dart';
+export 'package:today/data/model/shortcuts.dart';
+export 'package:today/data/model/configs.dart';
+export 'package:today/data/model/topic.dart';

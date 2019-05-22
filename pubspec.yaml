@@ -25,11 +25,13 @@ dependencies:
   video_player:
   shared_preferences: ^0.5.2
   uuid: 2.0.0
-  toast: ^0.1.3
+  fluttertoast: ^3.1.0
   after_layout: ^1.0.7
   event_bus: ^1.1.0
   intl: ^0.15.7
   flutter_easyrefresh: 1.2.7
+  scoped_model: ^1.0.1
+  dotted_border: ^0.1.1
 
 dev_dependencies:
   flutter_test:

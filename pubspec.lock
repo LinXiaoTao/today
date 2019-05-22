@@ -28,7 +28,7 @@ packages:
       name: async
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -162,6 +162,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.3"
+  dotted_border:
+    dependency: "direct main"
+    description:
+      name: dotted_border
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.1.1"
   event_bus:
     dependency: "direct main"
     description:
@@ -193,6 +200,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  fluttertoast:
+    dependency: "direct main"
+    description:
+      name: fluttertoast
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "3.1.0"
   front_end:
     dependency: transitive
     description:
@@ -374,7 +388,14 @@ packages:
       name: quiver
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.0.2"
+    version: "2.0.3"
+  scoped_model:
+    dependency: "direct main"
+    description:
+      name: scoped_model
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.1"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -456,7 +477,7 @@ packages:
       name: test_api
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.2.4"
+    version: "0.2.5"
   timing:
     dependency: transitive
     description:
@@ -464,13 +485,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.1.1+1"
-  toast:
-    dependency: "direct main"
-    description:
-      name: toast
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.1.4"
   typed_data:
     dependency: transitive
     description:

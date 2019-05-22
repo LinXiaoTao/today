@@ -9,6 +9,7 @@ class AppNetWorkImage extends StatelessWidget {
   final BoxFit fit;
   final AlignmentGeometry alignment;
   final BorderRadiusGeometry borderRadius;
+  final BoxBorder border;
 
   AppNetWorkImage(
       {@required this.src,
@@ -16,7 +17,8 @@ class AppNetWorkImage extends StatelessWidget {
       this.height,
       this.fit = BoxFit.cover,
       this.alignment = Alignment.center,
-      this.borderRadius});
+      this.borderRadius,
+      this.border});
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +31,10 @@ class AppNetWorkImage extends StatelessWidget {
     return Container(
       width: width,
       height: height,
+      padding: EdgeInsets.all(5),
       decoration: BoxDecoration(
           borderRadius: borderRadius ?? BorderRadius.circular(2),
+          border: border,
           image: DecorationImage(
               fit: fit,
               alignment: alignment,
