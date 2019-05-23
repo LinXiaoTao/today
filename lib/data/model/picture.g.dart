@@ -11,10 +11,10 @@ Picture _$PictureFromJson(Map json) {
       json['thumbnailUrl'] as String,
       json['middlePicUrl'] as String,
       json['picUrl'] as String,
-      json['format'] as String,
+      json['format'] as String ?? '',
       json['averageHue'] as String,
-      width: json['width'] as int,
-      height: json['height'] as int);
+      width: json['width'] as int ?? 0,
+      height: json['height'] as int ?? 0);
 }
 
 Map<String, dynamic> _$PictureToJson(Picture instance) => <String, dynamic>{

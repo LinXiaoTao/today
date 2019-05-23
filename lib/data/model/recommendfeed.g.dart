@@ -78,10 +78,11 @@ RecommendBodyItem _$RecommendBodyItemFromJson(Map json) {
   return RecommendBodyItem(
       json['id'] as String,
       json['type'] as String,
-      json['content'] as String,
+      json['content'] as String ?? '',
       (json['urlsInText'] as List)
-          ?.map((e) => e == null ? null : UrlsInText.fromJson(e as Map))
-          ?.toList(),
+              ?.map((e) => e == null ? null : UrlsInText.fromJson(e as Map))
+              ?.toList() ??
+          [],
       json['status'] as String,
       json['isCommentForbidden'] as bool,
       json['likeCount'] as int,
@@ -91,8 +92,9 @@ RecommendBodyItem _$RecommendBodyItemFromJson(Map json) {
       json['topic'] == null ? null : Topic.fromJson(json['topic'] as Map),
       json['poi'] == null ? null : Poi.fromJson(json['poi'] as Map),
       (json['pictures'] as List)
-          ?.map((e) => e == null ? null : Picture.fromJson(e as Map))
-          ?.toList(),
+              ?.map((e) => e == null ? null : Picture.fromJson(e as Map))
+              ?.toList() ??
+          [],
       json['user'] == null ? null : UserInfo.fromJson(json['user'] as Map),
       json['createdAt'] as String,
       json['messageId'] as String,

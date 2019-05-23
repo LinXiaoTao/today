@@ -26,6 +26,7 @@ class Comment {
 
   final UserInfo user;
 
+  @JsonKey(defaultValue: [])
   final List<Picture> pictures;
 
   final bool liked;

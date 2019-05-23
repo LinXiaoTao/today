@@ -13,18 +13,18 @@ class MessageItem extends StatelessWidget {
 
     Comment topComment = bodyItem.topComment;
 
-    List<UserInfo> involvedUsers = topic.involvedUsers.users;
+    List<UserInfo> involvedUsers = topic.involvedUsers.users.reversed.toList();
 
     List<Widget> involvedUsersWidget = [];
 
     for (UserInfo user in involvedUsers) {
       involvedUsersWidget.add(Positioned(
-          right: involvedUsers.indexOf(user) * 25.0,
+          right: involvedUsers.indexOf(user) * 20.0,
           child: AppNetWorkImage(
             src: user.avatarImage.thumbnailUrl,
             width: 30,
             height: 30,
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(13),
           )));
     }
 
@@ -43,8 +43,9 @@ class MessageItem extends StatelessWidget {
                   children: <Widget>[
                     AppNetWorkImage(
                       src: topic.squarePicture.thumbnailUrl,
-                      width: 50,
-                      height: 50,
+                      width: 40,
+                      height: 40,
+                      borderRadius: BorderRadius.circular(5),
                     ),
                     SizedBox(
                       width: AppDimensions.primaryPadding,
@@ -73,7 +74,7 @@ class MessageItem extends StatelessWidget {
                       ),
                     ),
                     LimitedBox(
-                        maxWidth: 80,
+                        maxWidth: 70,
                         child: Stack(
                           children: involvedUsersWidget,
                           alignment: Alignment.center,
@@ -93,67 +94,8 @@ class MessageItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        (bodyItem.content == null ||
-                                bodyItem.content.trim().isEmpty
-                            ? SizedBox()
-                            : Builder(builder: (context) {
-                                TextSpan content;
-                                if (bodyItem.urlsInText != null &&
-                                    bodyItem.urlsInText.isNotEmpty) {
-                                  List<TextSpan> child = [];
-
-                                  List<int> indexList = [];
-
-                                  for (UrlsInText text in bodyItem.urlsInText) {
-                                    indexList.add(bodyItem.content
-                                        .indexOf(RegExp(text.title)));
-                                  }
-
-                                  int cur = 0;
-                                  int indexPos = 0;
-                                  while (indexPos < indexList.length) {
-                                    if (indexList[indexPos] > cur) {
-                                      child.add(TextSpan(
-                                          text: bodyItem.content.substring(
-                                              cur, indexList[indexPos])));
-                                      cur = indexList[indexPos];
-                                    } else {
-                                      int startIndex = indexList[indexPos];
-                                      int endIndex = startIndex +
-                                          bodyItem.urlsInText[indexPos].title
-                                              .length;
-
-                                      child.add(TextSpan(
-                                          text: bodyItem.content
-                                              .substring(startIndex, endIndex),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .body1
-                                              .merge(TextStyle(
-                                                  color: AppColors.blue))));
-                                      cur = endIndex;
-                                      indexPos++;
-                                    }
-                                  }
-
-                                  if (cur < bodyItem.content.length) {
-                                    child.add(TextSpan(
-                                        text: bodyItem.content.substring(
-                                            cur, bodyItem.content.length)));
-                                  }
-
-                                  content = TextSpan(
-                                      children: child,
-                                      style: Theme.of(context).textTheme.body1);
-                                } else {
-                                  content = TextSpan(
-                                      text: bodyItem.content,
-                                      style: Theme.of(context).textTheme.body1);
-                                }
-
-                                return Text.rich(content);
-                              })),
-                        _createContentWidget(bodyItem),
+                        _RichTextWidget(bodyItem),
+                        _createContentWidget(bodyItem, context),
                         SizedBox(
                           height: AppDimensions.primaryPadding,
                         ),
@@ -285,8 +227,7 @@ class MessageItem extends StatelessWidget {
                             );
                           }),
                           LayoutBuilder(builder: (context, layout) {
-                            if (topComment.pictures == null ||
-                                topComment.pictures.isEmpty) return SizedBox();
+                            if (topComment.pictures.isEmpty) return SizedBox();
 
                             debugPrint(
                                 "topComent picture: ${topComment.pictures}");
@@ -369,7 +310,8 @@ class MessageItem extends StatelessWidget {
     );
   }
 
-  Widget _createContentWidget(RecommendBodyItem bodyItem) {
+  Widget _createContentWidget(
+      RecommendBodyItem bodyItem, BuildContext context) {
     if (bodyItem.video != null) {
       /// video
       /// fix width
@@ -409,8 +351,7 @@ class MessageItem extends StatelessWidget {
       if (pictures.length == 1) {
         /// 单个
 
-        if ((pictures.single.width ?? 0) <= 0 ||
-            (pictures.single.height ?? 0) <= 0) {
+        if (pictures.single.width <= 0 || pictures.single.height <= 0) {
           return SizedBox(
             width: 0,
             height: 0,
@@ -419,10 +360,11 @@ class MessageItem extends StatelessWidget {
 
         double width = pictures.single.width.toDouble();
         double height = pictures.single.height.toDouble();
-
-        double aspectRatio = width / height;
-
-        debugPrint("aspectRatio = $aspectRatio");
+        double maxWidth = MediaQuery.of(context).size.width;
+        Map measure = ImageUtil.measureImageSize(
+          srcSizes: {'w': width, 'h': height},
+          maxSizes: {'w': maxWidth * 2 / 3, 'h': maxWidth / 2},
+        );
 
         return Column(
           children: <Widget>[
@@ -431,19 +373,18 @@ class MessageItem extends StatelessWidget {
             ),
             LayoutBuilder(
               builder: (context, layout) {
-                while (width > layout.maxWidth || height > 300) {
-                  width /= 2;
-                  height /= 2;
-                }
-
-                debugPrint(
-                    "${bodyItem.content}: width = $width; height = $height");
-
-                return AppNetWorkImage(
-                  src: pictures.single.thumbnailUrl,
-                  width: width,
-                  height: height,
-                  alignment: Alignment.centerLeft,
+                return Stack(
+                  children: <Widget>[
+                    AppNetWorkImage(
+                      src: pictures.single.thumbnailUrl,
+                      width: measure['w'],
+                      height: measure['h'],
+                    ),
+                    SizedBox(
+                        width: measure['w'],
+                        height: measure['h'],
+                        child: _createImageType(pictures.single)),
+                  ],
                 );
               },
             ),
@@ -460,22 +401,29 @@ class MessageItem extends StatelessWidget {
         return GridView.builder(
           shrinkWrap: true,
           padding: EdgeInsets.only(
-              top:
-                  ((bodyItem.content == null || bodyItem.content.trim().isEmpty)
-                      ? 0
-                      : AppDimensions.primaryPadding)),
+              top: (bodyItem.content.trim().isEmpty
+                  ? 0
+                  : AppDimensions.primaryPadding)),
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: axisCount,
               mainAxisSpacing: 5,
               crossAxisSpacing: 5),
           itemBuilder: (context, index) {
+            var picture = pictures[index];
             return LayoutBuilder(
               builder: (context, layout) {
-                return AppNetWorkImage(
-                  src: pictures[index].thumbnailUrl,
-                  width: layout.maxWidth,
-                  height: layout.maxWidth,
+                return Stack(
+                  children: <Widget>[
+                    AppNetWorkImage(
+                      src: picture.thumbnailUrl,
+                      width: layout.maxWidth,
+                      height: layout.maxWidth,
+                    ),
+                    Builder(builder: (_) {
+                      return _createImageType(picture);
+                    }),
+                  ],
                 );
               },
             );
@@ -490,5 +438,151 @@ class MessageItem extends StatelessWidget {
         height: 0,
       );
     }
+  }
+
+  Widget _createImageType(Picture picture) {
+    if (picture.format == 'gif') {
+      /// gif
+      return Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: EdgeInsets.all(AppDimensions.smallPadding),
+          child: Image.asset('images/ic_messages_pictype_gif.png'),
+        ),
+      );
+    } else if (picture.height > picture.width * 3) {
+      /// long
+      return Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: EdgeInsets.all(AppDimensions.smallPadding),
+          child: Image.asset('images/ic_messages_pictype_long_pic.png'),
+        ),
+      );
+    } else {
+      return SizedBox();
+    }
+  }
+}
+
+class _RichTextWidget extends StatelessWidget {
+  final RecommendBodyItem bodyItem;
+
+  _RichTextWidget(this.bodyItem);
+
+  _measureText() {}
+
+  @override
+  Widget build(BuildContext context) {
+    return (bodyItem.content.trim().isEmpty
+        ? SizedBox()
+        : Padding(
+            padding: EdgeInsets.only(bottom: AppDimensions.primaryPadding),
+            child: LayoutBuilder(builder: (context, layout) {
+              TextSpan content;
+              if (bodyItem.urlsInText.isNotEmpty) {
+                List<TextSpan> child = [];
+
+                List<int> indexList = [];
+
+                for (UrlsInText text in bodyItem.urlsInText) {
+                  /// 遍历找出所有的匹配的
+
+                  int start = 0;
+                  RegExp reg = RegExp(RegExp.escape(text.originalUrl));
+                  int index = -1;
+                  while ((index =
+                          bodyItem.content.substring(start).indexOf(reg)) !=
+                      -1) {
+                    indexList.add(index);
+                    start = index + 1;
+                  }
+                }
+
+                debugPrint("indexList = $indexList");
+
+                int cur = 0;
+                int indexPos = 0;
+                while (indexPos < indexList.length) {
+                  if (indexList[indexPos] > cur) {
+                    child.add(TextSpan(
+                        text: bodyItem.content
+                            .substring(cur, indexList[indexPos])));
+                    cur = indexList[indexPos];
+                  } else {
+                    int startIndex = indexList[indexPos];
+                    int endIndex = startIndex +
+                        bodyItem.urlsInText[indexPos].originalUrl.length;
+
+                    child.add(TextSpan(
+                        text: bodyItem.urlsInText[indexPos].title,
+                        style: TextStyle(color: AppColors.blue)));
+                    cur = endIndex;
+                    indexPos++;
+                  }
+                }
+
+                if (cur < bodyItem.content.length) {
+                  child.add(TextSpan(
+                      text: bodyItem.content
+                          .substring(cur, bodyItem.content.length)));
+                }
+
+                content = TextSpan(
+                    children: child,
+                    style: TextStyle(
+                      color: AppColors.primaryTextColor,
+                      fontSize: 15,
+                      letterSpacing: 0.5,
+                    ));
+              } else {
+                content = TextSpan(
+                    text: bodyItem.content,
+                    style: TextStyle(
+                        color: AppColors.primaryTextColor,
+                        fontSize: 15,
+                        letterSpacing: 0.5));
+              }
+
+              var painter = TextPainter(
+                textDirection: TextDirection.ltr,
+                text: content,
+              );
+
+              debugPrint("maxWidth = ${layout.maxWidth}");
+              painter.layout(maxWidth: layout.maxWidth);
+
+              var textLine = painter.height / painter.preferredLineHeight;
+
+              debugPrint("text height = ${painter.height}; line = $textLine");
+
+              if (textLine > 5) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text.rich(
+                      content,
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(
+                      height: AppDimensions.smallPadding,
+                    ),
+                    Text(
+                      '全文',
+                      style: TextStyle(
+                        color: AppColors.tipsTextColor,
+                        fontSize: 16,
+                      ),
+                    )
+                  ],
+                );
+              }
+
+              return Text.rich(
+                content,
+              );
+            })));
   }
 }

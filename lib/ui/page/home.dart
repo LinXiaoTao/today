@@ -1,5 +1,5 @@
 import 'package:today/ui/ui_base.dart';
-import 'package:today/ui/debug.dart';
+import 'package:today/ui/page/debug.dart';
 import 'package:today/ui/message.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:today/data/repository/recommend_model.dart';

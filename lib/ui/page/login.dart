@@ -1,5 +1,5 @@
 import 'package:today/ui/ui_base.dart';
-import 'package:today/ui/home.dart';
+import 'package:today/ui/page/home.dart';
 import 'package:today/data/state/login.dart';
 
 class LoginPage extends StatelessWidget {

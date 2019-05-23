@@ -13,11 +13,15 @@ class Picture {
   /// 1000 * 1000
   final String picUrl;
 
+  /// gif,png,jpeg
+  @JsonKey(defaultValue: '')
   final String format;
 
   final String averageHue;
 
+  @JsonKey(defaultValue: 0)
   final int width;
+  @JsonKey(defaultValue: 0)
   final int height;
 
   Picture(this.thumbnailUrl, this.middlePicUrl, this.picUrl, this.format,

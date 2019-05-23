@@ -30,7 +30,7 @@ Shortcut _$ShortcutFromJson(Map json) {
       json['content'] as String,
       json['url'] as String,
       json['picUrl'] as String,
-      json['style'] as String);
+      json['style'] as String ?? '');
 }
 
 Map<String, dynamic> _$ShortcutToJson(Shortcut instance) => <String, dynamic>{

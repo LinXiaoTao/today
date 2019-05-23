@@ -21,8 +21,9 @@ Comment _$CommentFromJson(Map json) {
       json['status'] as String,
       json['user'] == null ? null : UserInfo.fromJson(json['user'] as Map),
       (json['pictures'] as List)
-          ?.map((e) => e == null ? null : Picture.fromJson(e as Map))
-          ?.toList(),
+              ?.map((e) => e == null ? null : Picture.fromJson(e as Map))
+              ?.toList() ??
+          [],
       json['liked'] as bool);
 }
 

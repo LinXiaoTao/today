@@ -79,8 +79,10 @@ class RecommendBodyItem {
   ///ORIGINAL_POST
   final String type;
 
+  @JsonKey(defaultValue: '')
   final String content;
 
+  @JsonKey(defaultValue: [])
   final List<UrlsInText> urlsInText;
 
   /// NORMAL
@@ -100,6 +102,7 @@ class RecommendBodyItem {
 
   final Poi poi;
 
+  @JsonKey(defaultValue: [])
   final List<Picture> pictures;
 
   final UserInfo user;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:today/data/constants.dart';
 import 'package:today/data/state/login.dart';
+import 'dart:math';
 
 class AppNetWorkImage extends StatelessWidget {
   final String src;
@@ -43,5 +44,41 @@ class AppNetWorkImage extends StatelessWidget {
                 key_device_id: LoginState.deviceId
               }))),
     );
+  }
+}
+
+class ImageUtil {
+  ImageUtil._();
+
+  /// 参考即可计算规则：com.ruguoapp.jike.view.widget.grid.GridPicLayout.e()
+  /// com.ruguoapp.jike.view.widget.grid.a
+  /// com.ruguoapp.jike.view.widget.grid.a.b 和 com.ruguoapp.jike.view.widget.grid.a.c
+
+  static measureImageSize(
+      {Map<String, dynamic> srcSizes, Map<String, dynamic> maxSizes}) {
+    double srcW = srcSizes['w'];
+    double srcH = srcSizes['h'];
+    double maxW = maxSizes['w'];
+    double maxH = maxSizes['h'];
+    double outW = srcH;
+    double outH = maxH;
+    if (srcW > 0 && srcH > 0) {
+      /// w / h
+      double scale = max(0.5625, min(srcW / srcH, 1 / 0.5625));
+      debugPrint('scale = $scale');
+      if (scale < (maxW / maxH)) {
+        outW = (maxH * scale);
+      } else {
+        outW = (maxW / scale);
+        outH = maxW;
+      }
+    } else {
+      outW = outH;
+    }
+
+    debugPrint(
+        'srcW = $srcW; srcH = $srcH; scale = ${srcW / srcH} ; outW = $outW; outH = $outH ; outScale = ${outW / outH}');
+
+    return {'w': outW, 'h': outH};
   }
 }
