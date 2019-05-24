@@ -9,9 +9,10 @@ part of 'recommendfeed.dart';
 RecommendFeed _$RecommendFeedFromJson(Map json) {
   return RecommendFeed(
       (json['data'] as List)
-          ?.map((e) => e == null ? null : RecommendItem.fromJson(e as Map))
-          ?.toList(),
-      json['toastMessage'] as String,
+              ?.map((e) => e == null ? null : RecommendItem.fromJson(e as Map))
+              ?.toList() ??
+          [],
+      json['toastMessage'] as String ?? '',
       json['loadMoreKey'] == null
           ? null
           : LoadMoreKey.fromJson(json['loadMoreKey'] as Map));

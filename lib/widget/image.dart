@@ -62,15 +62,15 @@ class ImageUtil {
     double maxH = maxSizes['h'];
     double outW = srcH;
     double outH = maxH;
+    debugPrint('maxW = $maxW ; maxH = $maxH ; maxScale = ${maxW / maxH}');
     if (srcW > 0 && srcH > 0) {
       /// w / h
       double scale = max(0.5625, min(srcW / srcH, 1 / 0.5625));
-      debugPrint('scale = $scale');
       if (scale < (maxW / maxH)) {
         outW = (maxH * scale);
       } else {
-        outW = (maxW / scale);
-        outH = maxW;
+        outH = (maxW / scale);
+        outW = maxW;
       }
     } else {
       outW = outH;

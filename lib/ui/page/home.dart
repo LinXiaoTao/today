@@ -63,20 +63,34 @@ class __HomeBodyState extends State<_HomeBody>
     return ScopedModelDescendant<RecommendModel>(
       builder: (context, _, model) {
         if (model.recommendFee == null) {
-          return Center(
-            child: CircularProgressIndicator(),
+          return Column(
+            children: <Widget>[
+              Container(
+                color: AppColors.statusBarColor,
+                height: MediaQuery.of(context).padding.top,
+              ),
+              _SearchWidget(
+                  SearchPlaceholder(
+                    '',
+                    '',
+                    '',
+                    '',
+                  ),
+                  55),
+              Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: SpinKitThreeBounce(
+                    size: 20,
+                    color: Colors.grey,
+                    duration: Duration(milliseconds: 1000),
+                  ),
+                ),
+              ),
+            ],
           );
         }
-
-        Future.delayed(Duration(milliseconds: 300), () {
-          Fluttertoast.showToast(
-              msg: model.recommendFee.toastMessage,
-              toastLength: Toast.LENGTH_LONG,
-              backgroundColor: AppColors.accentColor,
-              textColor: AppColors.primaryTextColor,
-              gravity: ToastGravity.TOP,
-              fontSize: 14);
-        });
 
         return Column(
           children: <Widget>[
@@ -95,7 +109,12 @@ class __HomeBodyState extends State<_HomeBody>
                 },
                 child: CustomScrollView(
                   slivers: <Widget>[
-                    new _SearchWidget(model.searchPlaceholder),
+                    SliverPersistentHeader(
+                      floating: true,
+                      delegate: _SliverSearchDelegate(
+                          maxHeight: 55,
+                          child: _SearchWidget(model.searchPlaceholder, 55)),
+                    ),
                     SliverToBoxAdapter(
                       child: new _ShortcutsWidget(model.shortcutsData),
                     ),
@@ -117,66 +136,86 @@ class __HomeBodyState extends State<_HomeBody>
   @override
   void afterFirstLayout(BuildContext context) {
     RecommendModel.of(context).requestRecommendData();
+    RecommendModel.of(context).addListener(() {
+      if (RecommendModel.of(context).recommendFee == null ||
+          RecommendModel.of(context).recommendFee.toastMessage.isEmpty) {
+        return;
+      }
+
+      Future.delayed(Duration(milliseconds: 300), () {
+        Fluttertoast.showToast(
+            msg: RecommendModel.of(context).recommendFee.toastMessage,
+            toastLength: Toast.LENGTH_LONG,
+            backgroundColor: AppColors.accentColor,
+            textColor: AppColors.primaryTextColor,
+            gravity: ToastGravity.TOP,
+            fontSize: 14);
+      });
+    });
   }
 }
 
 class _SearchWidget extends StatelessWidget {
   final SearchPlaceholder searchPlaceholder;
+  final double height;
 
   const _SearchWidget(
-    this.searchPlaceholder, {
+    this.searchPlaceholder,
+    this.height, {
     Key key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SliverPersistentHeader(
-        floating: true,
-        delegate: _SliverSearchDelegate(
-            maxHeight: 60,
+    return Container(
+      /// 我艹，固定了宽度才可以。。。迷
+      width: MediaQuery.of(context).size.width,
+      height: height,
+      color: AppColors.statusBarColor,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
             child: Container(
-              /// 我艹，固定了宽度才可以。。。迷
-              width: MediaQuery.of(context).size.width,
-              height: 60,
-              color: Color(0xffffe411),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Center(
-                        child: TextField(
-                            decoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: searchPlaceholder.homeTab,
-                                prefixIcon:
-                                    Image.asset("images/ic_navbar_search.png"),
-                                hintStyle: TextStyle(fontSize: 14))),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  GestureDetector(
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return DebugPage();
-                        }));
-                      },
-                      child: Image.asset("images/ic_navbar_scan.png")),
-                  SizedBox(
-                    width: 10,
-                  )
-                ],
+              margin: EdgeInsets.symmetric(
+                  horizontal: AppDimensions.primaryPadding,
+                  vertical: AppDimensions.primaryPadding - 2),
+              padding: EdgeInsets.symmetric(
+                  horizontal: AppDimensions.primaryPadding),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
               ),
-            )));
+              child: Center(
+                child: Row(
+                  children: <Widget>[
+                    Image.asset("images/ic_navbar_search.png"),
+                    SizedBox(
+                      width: AppDimensions.primaryPadding,
+                    ),
+                    Text(
+                      searchPlaceholder.homeTab,
+                      style: TextStyle(
+                          color: AppColors.tipsTextColor, fontSize: 16),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return DebugPage();
+                }));
+              },
+              child: Image.asset("images/ic_navbar_scan.png")),
+          SizedBox(
+            width: AppDimensions.primaryPadding,
+          )
+        ],
+      ),
+    );
   }
 }
 
@@ -277,7 +316,9 @@ class _ShortcutsWidget extends StatelessWidget {
                 child: Text(
                   shortcutsData.title,
                   style: TextStyle(
-                      color: AppColors.primaryTextColor, fontSize: 16),
+                    color: AppColors.primaryTextColor,
+                    fontSize: 16,
+                  ),
                 ),
               ),
               SizedBox(

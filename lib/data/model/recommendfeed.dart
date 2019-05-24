@@ -10,7 +10,9 @@ part 'recommendfeed.g.dart';
 
 @JsonSerializable()
 class RecommendFeed {
+  @JsonKey(defaultValue: [])
   final List<RecommendItem> data;
+  @JsonKey(defaultValue: '')
   final String toastMessage;
   final LoadMoreKey loadMoreKey;
 

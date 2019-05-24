@@ -1,5 +1,6 @@
 import 'package:today/ui/ui_base.dart';
 import 'package:today/data/model/recommendfeed.dart';
+import 'package:today/ui/page/picture_detail.dart';
 
 class MessageItem extends StatelessWidget {
   final RecommendItem item;
@@ -60,7 +61,9 @@ class MessageItem extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).primaryTextTheme.subtitle,
                           ),
-                          Spacer(),
+                          SizedBox(
+                            height: AppDimensions.smallPadding,
+                          ),
                           LayoutBuilder(
                             builder: (context, layout) {
                               return Text(topic.subscribersDescription,
@@ -99,77 +102,84 @@ class MessageItem extends StatelessWidget {
                         SizedBox(
                           height: AppDimensions.primaryPadding,
                         ),
-                        Row(
-                          children: <Widget>[
-                            AppNetWorkImage(
-                              src: bodyItem.user.avatarImage.thumbnailUrl,
-                              width: 30,
-                              height: 30,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            SizedBox(
-                              width: AppDimensions.smallPadding,
-                            ),
-                            Text(
-                              bodyItem.user.screenName,
-                              style: TextStyle(
-                                  color: AppColors.primaryTextColor,
-                                  fontSize: 12),
-                            ),
-                            SizedBox(
-                              width: AppDimensions.smallPadding,
-                            ),
-                            Builder(builder: (context) {
-                              debugPrint(
-                                  "trailingIcons = ${bodyItem.user.trailingIcons}");
+                        Builder(builder: (context) {
+                          UserInfo user = bodyItem.user;
 
-                              if (bodyItem.user.trailingIcons.isEmpty) {
-                                return SizedBox();
-                              }
+                          if (user == null) return SizedBox();
 
-                              List<Widget> images = [];
-
-                              for (TrailingIcons icon
-                                  in bodyItem.user.trailingIcons) {
-                                images.add(AppNetWorkImage(
-                                  src: icon.picUrl,
-                                  width: 12,
-                                  height: 12,
-                                  borderRadius: BorderRadius.circular(0),
-                                ));
-                                images.add(SizedBox(
-                                  width: 1,
-                                ));
-                              }
-
-                              return Row(
-                                children: images,
-                              );
-                            }),
-                            (bodyItem.user.trailingIcons.isEmpty
-                                ? SizedBox()
-                                : SizedBox(
-                                    width: AppDimensions.smallPadding,
-                                  )),
-                            Text(
-                              '发布',
-                              style: TextStyle(
-                                  color: AppColors.tipsTextColor, fontSize: 12),
-                            ),
-                            Spacer(),
-                            Builder(builder: (context) {
-                              if (bodyItem.poi == null ||
-                                  bodyItem.poi.name == null) return SizedBox();
-
-                              return Text(
-                                bodyItem.poi.name,
+                          return Row(
+                            children: <Widget>[
+                              AppNetWorkImage(
+                                src: user.avatarImage.thumbnailUrl,
+                                width: 30,
+                                height: 30,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              SizedBox(
+                                width: AppDimensions.smallPadding,
+                              ),
+                              Text(
+                                user.screenName,
                                 style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.tipsTextColor),
-                              );
-                            })
-                          ],
-                        ),
+                                    color: AppColors.primaryTextColor,
+                                    fontSize: 12),
+                              ),
+                              SizedBox(
+                                width: AppDimensions.smallPadding,
+                              ),
+                              Builder(builder: (context) {
+                                debugPrint(
+                                    "trailingIcons = ${user.trailingIcons}");
+
+                                if (user.trailingIcons.isEmpty) {
+                                  return SizedBox();
+                                }
+
+                                List<Widget> images = [];
+
+                                for (TrailingIcons icon in user.trailingIcons) {
+                                  images.add(AppNetWorkImage(
+                                    src: icon.picUrl,
+                                    width: 12,
+                                    height: 12,
+                                    borderRadius: BorderRadius.circular(0),
+                                  ));
+                                  images.add(SizedBox(
+                                    width: 1,
+                                  ));
+                                }
+
+                                return Row(
+                                  children: images,
+                                );
+                              }),
+                              (user.trailingIcons.isEmpty
+                                  ? SizedBox()
+                                  : SizedBox(
+                                      width: AppDimensions.smallPadding,
+                                    )),
+                              Text(
+                                '发布',
+                                style: TextStyle(
+                                    color: AppColors.tipsTextColor,
+                                    fontSize: 12),
+                              ),
+                              Spacer(),
+                              Builder(builder: (context) {
+                                if (bodyItem.poi == null ||
+                                    bodyItem.poi.name == null)
+                                  return SizedBox();
+
+                                return Text(
+                                  bodyItem.poi.name,
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.tipsTextColor),
+                                );
+                              })
+                            ],
+                          );
+                        }),
                       ],
                     ),
                   );
@@ -236,19 +246,53 @@ class MessageItem extends StatelessWidget {
                                 topComment.pictures.first.width.toDouble();
                             double height =
                                 topComment.pictures.first.height.toDouble();
-
-                            while (width > layout.maxWidth || height > 200) {
-                              width /= 2;
-                              height /= 2;
-                            }
+                            double maxWidth = MediaQuery.of(context).size.width;
+                            Map measure = ImageUtil.measureImageSize(
+                              srcSizes: {'w': width, 'h': height},
+                              maxSizes: {
+                                'w': maxWidth * 2 / 3,
+                                'h': maxWidth / 2
+                              },
+                            );
 
                             return Container(
                               margin: EdgeInsets.only(
                                   top: AppDimensions.primaryPadding),
-                              child: AppNetWorkImage(
-                                src: topComment.pictures.first.thumbnailUrl,
-                                width: width,
-                                height: height,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: <Widget>[
+                                  Hero(
+                                    tag: topComment.pictures.first.picUrl,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) {
+                                            return PictureDetailPage(
+                                                topComment.pictures);
+                                          }));
+                                        },
+                                        child: AppNetWorkImage(
+                                          src: topComment
+                                              .pictures.first.thumbnailUrl,
+                                          width: measure['w'],
+                                          height: measure['h'],
+                                          fit: BoxFit.fill,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Builder(builder: (_) {
+                                    return SizedBox(
+                                      width: measure['w'],
+                                      height: measure['h'],
+                                      child: _createImageType(
+                                          topComment.pictures.first),
+                                    );
+                                  }),
+                                ],
                               ),
                             );
                           }),
@@ -374,11 +418,27 @@ class MessageItem extends StatelessWidget {
             LayoutBuilder(
               builder: (context, layout) {
                 return Stack(
+                  alignment: Alignment.center,
                   children: <Widget>[
-                    AppNetWorkImage(
-                      src: pictures.single.thumbnailUrl,
-                      width: measure['w'],
-                      height: measure['h'],
+                    Hero(
+                      tag: pictures.single.picUrl,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (context) {
+                              return PictureDetailPage(pictures);
+                            }));
+                          },
+                          child: AppNetWorkImage(
+                            src: pictures.single.thumbnailUrl,
+                            width: measure['w'],
+                            height: measure['h'],
+                            fit: BoxFit.fill,
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(
                         width: measure['w'],
@@ -394,10 +454,6 @@ class MessageItem extends StatelessWidget {
         /// 九宫格
 
         int axisCount = 3;
-        if (pictures.length == 4) {
-          axisCount = 2;
-        }
-
         return GridView.builder(
           shrinkWrap: true,
           padding: EdgeInsets.only(
@@ -407,18 +463,36 @@ class MessageItem extends StatelessWidget {
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: axisCount,
-              mainAxisSpacing: 5,
-              crossAxisSpacing: 5),
+              mainAxisSpacing: AppDimensions.smallPadding,
+              crossAxisSpacing: AppDimensions.smallPadding),
           itemBuilder: (context, index) {
             var picture = pictures[index];
             return LayoutBuilder(
               builder: (context, layout) {
                 return Stack(
+                  alignment: Alignment.center,
                   children: <Widget>[
-                    AppNetWorkImage(
-                      src: picture.thumbnailUrl,
-                      width: layout.maxWidth,
-                      height: layout.maxWidth,
+                    Hero(
+                      tag: picture.picUrl,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (context) {
+                              return PictureDetailPage(
+                                pictures,
+                                initIndex: index,
+                              );
+                            }));
+                          },
+                          child: AppNetWorkImage(
+                            src: picture.thumbnailUrl,
+                            width: layout.maxWidth,
+                            height: layout.maxWidth,
+                          ),
+                        ),
+                      ),
                     ),
                     Builder(builder: (_) {
                       return _createImageType(picture);
@@ -556,7 +630,7 @@ class _RichTextWidget extends StatelessWidget {
 
               debugPrint("text height = ${painter.height}; line = $textLine");
 
-              if (textLine > 5) {
+              if (textLine > 8) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,

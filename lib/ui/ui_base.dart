@@ -15,13 +15,19 @@ export 'dart:math';
 export 'package:flutter/gestures.dart';
 export 'package:scoped_model/scoped_model.dart';
 export 'package:fluttertoast/fluttertoast.dart';
+export 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class NormalPage extends StatefulWidget {
   final Widget title;
   final Widget body;
   final bool needAppBar;
+  final Color backgroundColor;
 
-  NormalPage({this.title, @required this.body, this.needAppBar = true});
+  NormalPage(
+      {this.title,
+      @required this.body,
+      this.needAppBar = true,
+      this.backgroundColor});
 
   @override
   State<StatefulWidget> createState() {
@@ -33,6 +39,7 @@ class _NormalPageState extends State<NormalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: widget.backgroundColor,
       appBar: (widget.needAppBar
           ? AppBar(
               title: widget.title,
