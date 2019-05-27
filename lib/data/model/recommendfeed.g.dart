@@ -32,12 +32,12 @@ RecommendItem _$RecommendItemFromJson(Map json) {
           ?.toList(),
       json['type'] as String,
       json['id'] as String,
-      json['item'] == null
-          ? null
-          : RecommendBodyItem.fromJson(json['item'] as Map),
+      json['item'] == null ? null : Message.fromJson(json['item'] as Map),
       json['dislikeMenu'] == null
           ? null
-          : DislikeMenu.fromJson(json['dislikeMenu'] as Map));
+          : DislikeMenu.fromJson(json['dislikeMenu'] as Map),
+      json['action'] as String ?? '',
+      json['text'] as String ?? '');
 }
 
 Map<String, dynamic> _$RecommendItemToJson(RecommendItem instance) =>
@@ -46,7 +46,9 @@ Map<String, dynamic> _$RecommendItemToJson(RecommendItem instance) =>
       'type': instance.type,
       'id': instance.id,
       'item': instance.item,
-      'dislikeMenu': instance.dislikeMenu
+      'dislikeMenu': instance.dislikeMenu,
+      'action': instance.action,
+      'text': instance.text
     };
 
 LoadMoreKey _$LoadMoreKeyFromJson(Map json) {
@@ -75,66 +77,6 @@ Map<String, dynamic> _$RecommendHeadItemToJson(RecommendHeadItem instance) =>
       'type': instance.type
     };
 
-RecommendBodyItem _$RecommendBodyItemFromJson(Map json) {
-  return RecommendBodyItem(
-      json['id'] as String,
-      json['type'] as String,
-      json['content'] as String ?? '',
-      (json['urlsInText'] as List)
-              ?.map((e) => e == null ? null : UrlsInText.fromJson(e as Map))
-              ?.toList() ??
-          [],
-      json['status'] as String,
-      json['isCommentForbidden'] as bool,
-      json['likeCount'] as int,
-      json['commentCount'] as int,
-      json['repostCount'] as int,
-      json['shareCount'] as int,
-      json['topic'] == null ? null : Topic.fromJson(json['topic'] as Map),
-      json['poi'] == null ? null : Poi.fromJson(json['poi'] as Map),
-      (json['pictures'] as List)
-              ?.map((e) => e == null ? null : Picture.fromJson(e as Map))
-              ?.toList() ??
-          [],
-      json['user'] == null ? null : UserInfo.fromJson(json['user'] as Map),
-      json['createdAt'] as String,
-      json['messageId'] as String,
-      json['video'] == null ? null : Video.fromJson(json['video'] as Map),
-      json['subtitle'] as String,
-      json['topComment'] == null
-          ? null
-          : Comment.fromJson(json['topComment'] as Map),
-      (json['attachedComments'] as List)
-          ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
-          ?.toList(),
-      json['viewType'] as String);
-}
-
-Map<String, dynamic> _$RecommendBodyItemToJson(RecommendBodyItem instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'type': instance.type,
-      'content': instance.content,
-      'urlsInText': instance.urlsInText,
-      'status': instance.status,
-      'isCommentForbidden': instance.isCommentForbidden,
-      'likeCount': instance.likeCount,
-      'commentCount': instance.commentCount,
-      'repostCount': instance.repostCount,
-      'shareCount': instance.shareCount,
-      'topic': instance.topic,
-      'poi': instance.poi,
-      'pictures': instance.pictures,
-      'user': instance.user,
-      'createdAt': instance.createdAt,
-      'messageId': instance.messageId,
-      'video': instance.video,
-      'subtitle': instance.subtitle,
-      'topComment': instance.topComment,
-      'attachedComments': instance.attachedComments,
-      'viewType': instance.viewType
-    };
-
 DislikeMenu _$DislikeMenuFromJson(Map json) {
   return DislikeMenu(json['title'] as String, json['subtitle'] as String,
       (json['reasons'] as List)?.map((e) => e as Map)?.toList());
@@ -145,17 +87,4 @@ Map<String, dynamic> _$DislikeMenuToJson(DislikeMenu instance) =>
       'title': instance.title,
       'subtitle': instance.subtitle,
       'reasons': instance.reasons
-    };
-
-UrlsInText _$UrlsInTextFromJson(Map json) {
-  return UrlsInText(json['title'] as String, json['originalUrl'] as String,
-      json['url'] as String, json['type'] as String);
-}
-
-Map<String, dynamic> _$UrlsInTextToJson(UrlsInText instance) =>
-    <String, dynamic>{
-      'title': instance.title,
-      'originalUrl': instance.originalUrl,
-      'url': instance.url,
-      'type': instance.type
     };

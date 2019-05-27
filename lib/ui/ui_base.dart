@@ -5,7 +5,7 @@ export 'package:today/data/storage/simple_storage.dart';
 export 'package:today/data/constants.dart';
 export 'package:today/data/state/login.dart';
 export 'package:after_layout/after_layout.dart';
-export 'package:today/ui/page/login.dart';
+export 'package:today/ui/page/login/login.dart';
 export 'package:today/widget/init.dart';
 export 'package:today/util/global.dart';
 export 'package:today/data/event/events.dart';
@@ -96,6 +96,8 @@ class AppColors {
   static final topicBackground = Color(0xFFFAFAFA);
 
   static final dividerGrey = Color(0xFFDBDBDB);
+
+  static final darkGrey = Color(0xFFF0F3F5);
 }
 
 class AppDimensions {

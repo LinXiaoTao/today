@@ -6,6 +6,31 @@ part of 'comment.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+CommentList _$CommentListFromJson(Map json) {
+  return CommentList(
+      json['hasMoreHotComments'] as bool ?? false,
+      (json['data'] as List)
+              ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
+              ?.toList() ??
+          [],
+      (json['hotComments'] as List)
+              ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
+              ?.toList() ??
+          [],
+      (json['loadMoreKey'] as Map)?.map(
+            (k, e) => MapEntry(k as String, e),
+          ) ??
+          {});
+}
+
+Map<String, dynamic> _$CommentListToJson(CommentList instance) =>
+    <String, dynamic>{
+      'hasMoreHotComments': instance.hasMoreHotComments,
+      'data': instance.data,
+      'hotComments': instance.hotComments,
+      'loadMoreKey': instance.loadMoreKey
+    };
+
 Comment _$CommentFromJson(Map json) {
   return Comment(
       json['type'] as String,
@@ -24,7 +49,14 @@ Comment _$CommentFromJson(Map json) {
               ?.map((e) => e == null ? null : Picture.fromJson(e as Map))
               ?.toList() ??
           [],
-      json['liked'] as bool);
+      json['liked'] as bool,
+      (json['hotReplies'] as List)
+              ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
+              ?.toList() ??
+          [],
+      json['replyToComment'] == null
+          ? null
+          : Comment.fromJson(json['replyToComment'] as Map));
 }
 
 Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
@@ -41,5 +73,7 @@ Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
       'status': instance.status,
       'user': instance.user,
       'pictures': instance.pictures,
-      'liked': instance.liked
+      'liked': instance.liked,
+      'hotReplies': instance.hotReplies,
+      'replyToComment': instance.replyToComment
     };

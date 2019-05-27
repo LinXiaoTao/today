@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:today/data/constants.dart';
 import 'package:today/data/state/login.dart';
 import 'dart:math';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AppNetWorkImage extends StatelessWidget {
   final String src;
@@ -39,7 +40,7 @@ class AppNetWorkImage extends StatelessWidget {
           image: DecorationImage(
               fit: fit,
               alignment: alignment,
-              image: NetworkImage(src, headers: {
+              image: CachedNetworkImageProvider(src, headers: {
                 key_access_token: LoginState.accessToken,
                 key_device_id: LoginState.deviceId
               }))),
@@ -64,8 +65,8 @@ class ImageUtil {
     double outH = maxH;
     debugPrint('maxW = $maxW ; maxH = $maxH ; maxScale = ${maxW / maxH}');
     if (srcW > 0 && srcH > 0) {
-      /// w / h
-      double scale = max(0.5625, min(srcW / srcH, 1 / 0.5625));
+      /// w / h, 1.0 / 0.5625
+      double scale = max(0.5625, min(srcW / srcH, double.maxFinite));
       if (scale < (maxW / maxH)) {
         outW = (maxH * scale);
       } else {

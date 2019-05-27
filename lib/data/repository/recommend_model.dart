@@ -37,13 +37,18 @@ class RecommendModel extends Model {
 
   /// 推荐数据
   /// 包括列表和圈子
-  requestRecommendData() async {
-    await ApiRequest.profile();
-    _recommendFeed = await ApiRequest.recommendFeedList();
-    _shortcutsData = await ApiRequest.shortcutsList();
-    _searchPlaceholder = await ApiRequest.searchPlaceholder();
+  requestRecommendData({bool loadMore = false}) async {
+    _recommendFeed = await ApiRequest.recommendFeedList(
+        loadMoreKey: (loadMore ? _recommendFeed.loadMoreKey : null));
+    if (!loadMore) {
+      _shortcutsData = await ApiRequest.shortcutsList();
+      _searchPlaceholder = await ApiRequest.searchPlaceholder();
+    }
+
     _recommendHeadList.clear();
-    _recommendList.clear();
+    if (!loadMore) {
+      _recommendList.clear();
+    }
     if (_recommendFeed.data.isNotEmpty &&
         _recommendFeed.data[0].type == "HEADLINE_RECOMMENDATION") {
       _recommendHeadList.addAll(_recommendFeed.data[0].items);

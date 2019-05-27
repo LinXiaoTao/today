@@ -1,10 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:today/data/model/picture.dart';
-import 'package:today/data/model/poi.dart';
-import 'package:today/data/model/topic.dart';
-import 'package:today/data/model/user.dart';
-import 'package:today/data/model/video.dart';
-import 'package:today/data/model/comment.dart';
+import 'package:today/data/model/message.dart';
 
 part 'recommendfeed.g.dart';
 
@@ -30,10 +25,17 @@ class RecommendItem {
   /// RECOMMENDED_MESSAGE || HEADLINE_RECOMMENDATION
   final String type;
   final String id;
-  final RecommendBodyItem item;
+  final Message item;
   final DislikeMenu dislikeMenu;
 
-  RecommendItem(this.items, this.type, this.id, this.item, this.dislikeMenu);
+  ///BACK_TO_TOP
+  @JsonKey(defaultValue: '')
+  final String action;
+  @JsonKey(defaultValue: '')
+  final String text;
+
+  RecommendItem(this.items, this.type, this.id, this.item, this.dislikeMenu,
+      this.action, this.text);
 
   factory RecommendItem.fromJson(Map json) => _$RecommendItemFromJson(json);
 
@@ -75,85 +77,6 @@ class RecommendHeadItem {
 }
 
 @JsonSerializable()
-class RecommendBodyItem {
-  final String id;
-
-  ///ORIGINAL_POST
-  final String type;
-
-  @JsonKey(defaultValue: '')
-  final String content;
-
-  @JsonKey(defaultValue: [])
-  final List<UrlsInText> urlsInText;
-
-  /// NORMAL
-  final String status;
-
-  final bool isCommentForbidden;
-
-  final int likeCount;
-
-  final int commentCount;
-
-  final int repostCount;
-
-  final int shareCount;
-
-  final Topic topic;
-
-  final Poi poi;
-
-  @JsonKey(defaultValue: [])
-  final List<Picture> pictures;
-
-  final UserInfo user;
-
-  final String createdAt;
-
-  final String messageId;
-
-  final Video video;
-
-  final String subtitle;
-
-  final Comment topComment;
-
-  final List<Comment> attachedComments;
-
-  /// MESSAGE_VIEW
-  final String viewType;
-
-  RecommendBodyItem(
-      this.id,
-      this.type,
-      this.content,
-      this.urlsInText,
-      this.status,
-      this.isCommentForbidden,
-      this.likeCount,
-      this.commentCount,
-      this.repostCount,
-      this.shareCount,
-      this.topic,
-      this.poi,
-      this.pictures,
-      this.user,
-      this.createdAt,
-      this.messageId,
-      this.video,
-      this.subtitle,
-      this.topComment,
-      this.attachedComments,
-      this.viewType);
-
-  factory RecommendBodyItem.fromJson(Map json) =>
-      _$RecommendBodyItemFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RecommendBodyItemToJson(this);
-}
-
-@JsonSerializable()
 class DislikeMenu {
   final String title;
   final String subtitle;
@@ -164,20 +87,4 @@ class DislikeMenu {
   factory DislikeMenu.fromJson(Map json) => _$DislikeMenuFromJson(json);
 
   Map<String, dynamic> toJson() => _$DislikeMenuToJson(this);
-}
-
-@JsonSerializable()
-class UrlsInText {
-  final String title;
-  final String originalUrl;
-  final String url;
-
-  /// hashtag
-  final String type;
-
-  UrlsInText(this.title, this.originalUrl, this.url, this.type);
-
-  factory UrlsInText.fromJson(Map json) => _$UrlsInTextFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UrlsInTextToJson(this);
 }

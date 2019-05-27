@@ -1,1 +1,3 @@
 class RefreshTokenEvent {}
+
+class RefreshHomeEvent {}

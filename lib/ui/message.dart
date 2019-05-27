@@ -4,12 +4,44 @@ import 'package:today/ui/page/picture_detail.dart';
 
 class MessageItem extends StatelessWidget {
   final RecommendItem item;
+  final bool needMarginTop;
 
-  MessageItem(this.item);
+  MessageItem(this.item, {this.needMarginTop = true});
 
   @override
   Widget build(BuildContext context) {
-    RecommendBodyItem bodyItem = item.item;
+    Message bodyItem = item.item;
+
+    if (item.type == 'SPLIT_BAR') {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Global.eventBus.fire(RefreshHomeEvent());
+          },
+          child: Padding(
+            padding:
+                EdgeInsets.symmetric(vertical: AppDimensions.primaryPadding),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Image.asset('images/ic_tabbar_refresh.png'),
+                SizedBox(
+                  width: AppDimensions.smallPadding,
+                ),
+                Text(
+                  item.text,
+                  style: TextStyle(
+                      fontSize: 11, color: AppColors.primaryTextColor),
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    /// type: RECOMMENDED_MESSAGE
     Topic topic = bodyItem.topic;
 
     Comment topComment = bodyItem.topComment;
@@ -23,8 +55,8 @@ class MessageItem extends StatelessWidget {
           right: involvedUsers.indexOf(user) * 20.0,
           child: AppNetWorkImage(
             src: user.avatarImage.thumbnailUrl,
-            width: 30,
-            height: 30,
+            width: 25,
+            height: 25,
             borderRadius: BorderRadius.circular(13),
           )));
     }
@@ -32,20 +64,23 @@ class MessageItem extends StatelessWidget {
     return Column(
       children: <Widget>[
         Container(
+          margin: EdgeInsets.only(
+              top: (needMarginTop ? AppDimensions.primaryPadding + 3 : 0)),
           color: Colors.white,
           child: Column(
             children: <Widget>[
               Container(
-                height: 70,
+                height: 60,
                 alignment: Alignment.center,
                 color: AppColors.topicBackground,
-                padding: EdgeInsets.all(AppDimensions.primaryPadding),
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppDimensions.primaryPadding),
                 child: Row(
                   children: <Widget>[
                     AppNetWorkImage(
                       src: topic.squarePicture.thumbnailUrl,
-                      width: 40,
-                      height: 40,
+                      width: 35,
+                      height: 35,
                       borderRadius: BorderRadius.circular(5),
                     ),
                     SizedBox(
@@ -99,6 +134,7 @@ class MessageItem extends StatelessWidget {
                       children: <Widget>[
                         _RichTextWidget(bodyItem),
                         _createContentWidget(bodyItem, context),
+                        _createLinkInfoWidget(bodyItem),
                         SizedBox(
                           height: AppDimensions.primaryPadding,
                         ),
@@ -170,11 +206,16 @@ class MessageItem extends StatelessWidget {
                                     bodyItem.poi.name == null)
                                   return SizedBox();
 
-                                return Text(
-                                  bodyItem.poi.name,
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.tipsTextColor),
+                                return LimitedBox(
+                                  maxWidth: 200,
+                                  child: Text(
+                                    bodyItem.poi.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.tipsTextColor),
+                                  ),
                                 );
                               })
                             ],
@@ -231,6 +272,8 @@ class MessageItem extends StatelessWidget {
 
                             return Text.rich(
                               content,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 14,
                               ),
@@ -347,15 +390,11 @@ class MessageItem extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(
-          height: AppDimensions.primaryPadding,
-        )
       ],
     );
   }
 
-  Widget _createContentWidget(
-      RecommendBodyItem bodyItem, BuildContext context) {
+  Widget _createContentWidget(Message bodyItem, BuildContext context) {
     if (bodyItem.video != null) {
       /// video
       /// fix width
@@ -459,7 +498,7 @@ class MessageItem extends StatelessWidget {
           padding: EdgeInsets.only(
               top: (bodyItem.content.trim().isEmpty
                   ? 0
-                  : AppDimensions.primaryPadding)),
+                  : AppDimensions.smallPadding)),
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: axisCount,
@@ -514,6 +553,96 @@ class MessageItem extends StatelessWidget {
     }
   }
 
+  Widget _createLinkInfoWidget(Message bodyItem) {
+    LinkInfo linkInfo = bodyItem.linkInfo;
+    if (linkInfo == null) return SizedBox();
+
+    if (linkInfo.audio != null) {
+      /// 音视频
+
+      Audio audio = linkInfo.audio;
+
+      debugPrint('audio = $audio');
+
+      return Container(
+        color: AppColors.darkGrey,
+        height: 70,
+        child: Row(
+          children: <Widget>[
+            SizedBox(
+              width: 70,
+              height: 70,
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  AppNetWorkImage(
+                    src: audio.image.thumbnailUrl,
+                    width: 70,
+                    height: 70,
+                  ),
+                  Image.asset('images/ic_mediaplayer_musicplayer_play.png')
+                ],
+              ),
+            ),
+            SizedBox(
+              width: AppDimensions.primaryPadding,
+            ),
+            Expanded(
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  audio.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: AppColors.primaryTextColor),
+                ),
+                SizedBox(
+                  height: AppDimensions.smallPadding,
+                ),
+                Text(
+                  audio.author,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      TextStyle(color: AppColors.normalTextColor, fontSize: 12),
+                ),
+              ],
+            ))
+          ],
+        ),
+      );
+    } else {
+      /// 分享链接
+      return Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(2), color: AppColors.darkGrey),
+        height: 60,
+        child: Row(
+          children: <Widget>[
+            AppNetWorkImage(
+              src: linkInfo.pictureUrl,
+              width: 60,
+              height: 60,
+            ),
+            SizedBox(
+              width: AppDimensions.primaryPadding,
+            ),
+            Expanded(
+              child: Text(
+                linkInfo.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: AppColors.primaryTextColor),
+              ),
+            )
+          ],
+        ),
+      );
+    }
+  }
+
   Widget _createImageType(Picture picture) {
     if (picture.format == 'gif') {
       /// gif
@@ -540,11 +669,9 @@ class MessageItem extends StatelessWidget {
 }
 
 class _RichTextWidget extends StatelessWidget {
-  final RecommendBodyItem bodyItem;
+  final Message bodyItem;
 
   _RichTextWidget(this.bodyItem);
-
-  _measureText() {}
 
   @override
   Widget build(BuildContext context) {

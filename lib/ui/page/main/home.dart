@@ -1,55 +1,97 @@
 import 'package:today/ui/ui_base.dart';
-import 'package:today/ui/page/debug.dart';
-import 'package:today/ui/message.dart';
-import 'package:flutter_easyrefresh/easy_refresh.dart';
-import 'package:today/data/repository/recommend_model.dart';
 import 'package:flutter_easyrefresh/phoenix_header.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:today/ui/page/debug.dart';
+import 'package:today/ui/message.dart';
+import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:today/data/repository/recommend_model.dart';
 
-class HomePage extends StatefulWidget {
-  @override
-  State createState() {
-    return _HomeState();
-  }
-}
+class HomePage extends StatelessWidget {
+  final RecommendModel _model = RecommendModel();
 
-class _HomeState extends State<HomePage> {
-  RecommendModel _recommendModel = RecommendModel();
+  final Function(bool) canRefresh;
+
+  HomePage(this.canRefresh);
 
   @override
   Widget build(BuildContext context) {
-    return NormalPage(
-      needAppBar: false,
-      body: ScopedModel(
-        child: _HomeBody(),
-        model: _recommendModel,
-      ),
+    return ScopedModel(
+      child: _HomeBody(canRefresh),
+      model: _model,
     );
   }
 }
 
 class _HomeBody extends StatefulWidget {
+  final Function(bool) canRefreshStream;
+
+  _HomeBody(this.canRefreshStream);
+
   @override
-  __HomeBodyState createState() => __HomeBodyState();
+  _HomeBodyState createState() => _HomeBodyState();
 }
 
-class __HomeBodyState extends State<_HomeBody>
+class _HomeBodyState extends State<_HomeBody>
     with AfterLayoutMixin<_HomeBody>, WidgetsBindingObserver {
-  StreamSubscription _subscription;
+  StreamSubscription _tokenSubscription;
+  StreamSubscription _homeSubscription;
+
+  Function _showToastFun;
+  RecommendModel _model;
+
+  ScrollController _scrollController = ScrollController();
+
+  final GlobalKey<EasyRefreshState> _refreshKey = GlobalKey();
+
+  final GlobalKey<PhoenixHeaderState> _refreshHeaderKey = GlobalKey();
+
+  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _subscription = Global.eventBus.on<RefreshTokenEvent>().listen((event) {
+    _tokenSubscription =
+        Global.eventBus.on<RefreshTokenEvent>().listen((event) {
       afterFirstLayout(context);
     });
+    _homeSubscription = Global.eventBus.on<RefreshHomeEvent>().listen((event) {
+      _scrollController.jumpTo(0);
+      _refreshKey.currentState.callRefresh();
+    });
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    _model = RecommendModel.of(context);
+    _model.requestRecommendData();
+    _showToastFun = () {
+      if (_model.recommendFee == null ||
+          _model.recommendFee.toastMessage.isEmpty) {
+        return;
+      }
+
+      Future.delayed(Duration(milliseconds: 300), () {
+        Fluttertoast.showToast(
+            msg: _model.recommendFee.toastMessage,
+            toastLength: Toast.LENGTH_LONG,
+            backgroundColor: AppColors.accentColor,
+            textColor: AppColors.primaryTextColor,
+            gravity: ToastGravity.TOP,
+            fontSize: 14);
+      });
+    };
+    _model.addListener(_showToastFun);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _subscription?.cancel();
+    _tokenSubscription?.cancel();
+    _model.removeListener(_showToastFun);
+    _scrollController.dispose();
+    _homeSubscription?.cancel();
     super.dispose();
   }
 
@@ -99,31 +141,53 @@ class __HomeBodyState extends State<_HomeBody>
               height: MediaQuery.of(context).padding.top,
             ),
             Expanded(
-              child: EasyRefresh(
-                firstRefresh: false,
-                refreshHeader: PhoenixHeader(
-                  key: GlobalKey(),
-                ),
-                onRefresh: () {
-                  model.requestRecommendData();
+              child: NotificationListener<ScrollUpdateNotification>(
+                onNotification: (notification) {
+                  widget.canRefreshStream(
+                      _scrollController.position.pixels > 2000);
                 },
-                child: CustomScrollView(
-                  slivers: <Widget>[
-                    SliverPersistentHeader(
-                      floating: true,
-                      delegate: _SliverSearchDelegate(
-                          maxHeight: 55,
-                          child: _SearchWidget(model.searchPlaceholder, 55)),
-                    ),
-                    SliverToBoxAdapter(
-                      child: new _ShortcutsWidget(model.shortcutsData),
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        return MessageItem(model.recommendData[index]);
-                      }, childCount: model.recommendData.length),
-                    )
-                  ],
+                child: EasyRefresh(
+                  key: _refreshKey,
+                  firstRefresh: false,
+                  refreshHeader: PhoenixHeader(
+                    key: _refreshHeaderKey,
+                  ),
+                  refreshFooter: BallPulseFooter(
+                    key: _loadMoreFooterKey,
+                    backgroundColor: Colors.transparent,
+                    color: AppColors.accentColor,
+                  ),
+                  onRefresh: () {
+                    model.requestRecommendData();
+                  },
+                  loadMore: () {
+                    model.requestRecommendData(loadMore: true);
+                  },
+                  autoLoad: true,
+                  child: CustomScrollView(
+                    controller: _scrollController,
+                    slivers: <Widget>[
+                      SliverPersistentHeader(
+                        floating: true,
+                        delegate: _SliverSearchDelegate(
+                            maxHeight: 55,
+                            child: _SearchWidget(model.searchPlaceholder, 55)),
+                      ),
+                      SliverToBoxAdapter(
+                        child: new _ShortcutsWidget(model.shortcutsData),
+                      ),
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          return MessageItem(
+                            model.recommendData[index],
+                            needMarginTop:
+                                (model.recommendData[max(0, index - 1)].type ==
+                                    'RECOMMENDED_MESSAGE'),
+                          );
+                        }, childCount: model.recommendData.length),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -131,27 +195,6 @@ class __HomeBodyState extends State<_HomeBody>
         );
       },
     );
-  }
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    RecommendModel.of(context).requestRecommendData();
-    RecommendModel.of(context).addListener(() {
-      if (RecommendModel.of(context).recommendFee == null ||
-          RecommendModel.of(context).recommendFee.toastMessage.isEmpty) {
-        return;
-      }
-
-      Future.delayed(Duration(milliseconds: 300), () {
-        Fluttertoast.showToast(
-            msg: RecommendModel.of(context).recommendFee.toastMessage,
-            toastLength: Toast.LENGTH_LONG,
-            backgroundColor: AppColors.accentColor,
-            textColor: AppColors.primaryTextColor,
-            gravity: ToastGravity.TOP,
-            fontSize: 14);
-      });
-    });
   }
 }
 
@@ -230,19 +273,21 @@ class _ShortcutsWidget extends StatelessWidget {
       builder: (context) {
         if (shortcutsData == null) return SizedBox();
 
+        double imageSize = 55;
+
         List<Widget> headWidgetList =
             shortcutsData.shortcuts.map<Widget>((headItem) {
           Widget contentWidget;
           if (headItem.style == 'YELLOW') {
             contentWidget = Container(
-              padding: EdgeInsets.all(3),
+              padding: EdgeInsets.all(2),
               decoration: BoxDecoration(
                   border: Border.all(color: AppColors.yellow, width: 3),
                   borderRadius: BorderRadius.circular(10)),
               child: AppNetWorkImage(
                 src: headItem.picUrl,
-                width: 60,
-                height: 60,
+                width: imageSize,
+                height: imageSize,
                 borderRadius: BorderRadius.circular(6),
               ),
             );
@@ -250,33 +295,33 @@ class _ShortcutsWidget extends StatelessWidget {
             contentWidget = DottedBorder(
               child: AppNetWorkImage(
                 src: headItem.picUrl,
-                width: 60,
-                height: 60,
+                width: imageSize,
+                height: imageSize,
                 borderRadius: BorderRadius.circular(6),
               ),
               color: AppColors.dividerGrey,
-              padding: EdgeInsets.all(3),
+              padding: EdgeInsets.all(2),
               strokeWidth: 3,
             );
           } else if (headItem.style == 'GRAY') {
             contentWidget = Container(
-              padding: EdgeInsets.all(3),
+              padding: EdgeInsets.all(2),
               decoration: BoxDecoration(
                   border: Border.all(color: AppColors.dividerGrey, width: 3),
                   borderRadius: BorderRadius.circular(10)),
               child: AppNetWorkImage(
                 src: headItem.picUrl,
-                width: 60,
-                height: 60,
+                width: imageSize,
+                height: imageSize,
                 borderRadius: BorderRadius.circular(6),
               ),
             );
           }
 
           return Container(
-            height: 110,
+            height: 105,
             margin: EdgeInsets.only(
-                right: AppDimensions.primaryPadding,
+                right: AppDimensions.smallPadding,
                 left: (shortcutsData.shortcuts.indexOf(headItem) == 0
                     ? AppDimensions.primaryPadding
                     : 0)),
@@ -305,7 +350,6 @@ class _ShortcutsWidget extends StatelessWidget {
         return Container(
           color: Colors.white,
           padding: EdgeInsets.symmetric(vertical: AppDimensions.smallPadding),
-          margin: EdgeInsets.only(bottom: AppDimensions.primaryPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +369,7 @@ class _ShortcutsWidget extends StatelessWidget {
                 height: AppDimensions.primaryPadding,
               ),
               LimitedBox(
-                maxHeight: 110,
+                maxHeight: 105,
                 child: ListView(
                   padding: EdgeInsets.zero,
                   scrollDirection: Axis.horizontal,

@@ -5,6 +5,25 @@ import 'package:today/data/model/picture.dart';
 part 'comment.g.dart';
 
 @JsonSerializable()
+class CommentList {
+  @JsonKey(defaultValue: false)
+  final bool hasMoreHotComments;
+  @JsonKey(defaultValue: [])
+  final List<Comment> data;
+  @JsonKey(defaultValue: [])
+  final List<Comment> hotComments;
+  @JsonKey(defaultValue: {})
+  final Map<String, dynamic> loadMoreKey;
+
+  CommentList(
+      this.hasMoreHotComments, this.data, this.hotComments, this.loadMoreKey);
+
+  factory CommentList.fromJson(Map json) => _$CommentListFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CommentListToJson(this);
+}
+
+@JsonSerializable()
 class Comment {
   /// COMMENT
   final String type;
@@ -31,6 +50,12 @@ class Comment {
 
   final bool liked;
 
+  @JsonKey(defaultValue: [])
+  final List<Comment> hotReplies;
+
+  /// 回复的评论
+  final Comment replyToComment;
+
   Comment(
       this.type,
       this.id,
@@ -45,7 +70,9 @@ class Comment {
       this.status,
       this.user,
       this.pictures,
-      this.liked);
+      this.liked,
+      this.hotReplies,
+      this.replyToComment);
 
   factory Comment.fromJson(Map json) => _$CommentFromJson(json);
 

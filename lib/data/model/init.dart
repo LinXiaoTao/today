@@ -7,3 +7,4 @@ export 'package:today/data/model/video.dart';
 export 'package:today/data/model/shortcuts.dart';
 export 'package:today/data/model/configs.dart';
 export 'package:today/data/model/topic.dart';
+export 'package:today/data/model/message.dart';

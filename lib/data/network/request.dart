@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:today/platform/app.dart';
 import 'package:today/data/storage/simple_storage.dart';
@@ -11,13 +13,12 @@ export 'package:today/data/model/init.dart';
 import 'package:today/data/state/login.dart';
 import 'package:today/util/global.dart';
 import 'package:today/data/event/events.dart';
+import 'dart:async';
 
 class ApiRequest {
   static Dio _dio;
 
   static bool _init = false;
-
-  static bool _refreshToken = false;
 
   ApiRequest._();
 
@@ -25,9 +26,8 @@ class ApiRequest {
 
   /// 注册
   static Future<UserInfo> register() async {
-    await _initDio();
-
     /// 游客登录，用户名和密码是随机生成的
+
     return _dio.post("/1.0/users/register", data: {
       "saDeviceId": _androidId,
       "username": Uuid().v4(),
@@ -44,20 +44,13 @@ class ApiRequest {
 
   /// 获取用户数据
   static Future<UserInfo> profile() async {
-    await _initDio();
-
     return _dio.get("/1.0/users/profile").then((value) {
       return UserInfo.fromJson(value.data["user"]);
-    }).catchError((error) {
-      _handleError(error);
-      throw error;
     });
   }
 
   /// 保存设备信息
   static Future<bool> saveDeviceInfo() async {
-    await _initDio();
-
     return _dio.post("/1.0/users/saveDeviceInfo", data: {
       "instanceid": _androidId,
       "imei": "",
@@ -73,10 +66,12 @@ class ApiRequest {
     var requestData = {"debug": false, "trigger": "user"};
 
     if (loadMoreKey != null) {
-      requestData["score"] = loadMoreKey.score;
+      requestData['loadMoreKey'] = loadMoreKey;
     }
 
-    return _dio.post("/1.0/recommendFeed/list", data: {}).then((value) {
+    return _dio
+        .post("/1.0/recommendFeed/list", data: requestData)
+        .then((value) {
       return RecommendFeed.fromJson(value.data);
     });
   }
@@ -103,7 +98,7 @@ class ApiRequest {
     return _dio.post('/1.0/configs/appGet', data: {
       'keys': ['centralEntry']
     }).then((value) {
-      return CentralEntry.fromJson(value.data['data']);
+      return CentralEntry.fromJson(value.data['data']['centralEntry']);
     });
   }
 
@@ -118,7 +113,32 @@ class ApiRequest {
     });
   }
 
-  static _initDio() async {
+  /// 消息详情
+  static Future<Message> originalPostsGet(String id, {String userRef = ''}) {
+    return _dio.get('/1.0/originalPosts/get',
+        queryParameters: {'id': id, 'userRef': userRef}).then((value) {
+      return Message.fromJson(value.data['data']);
+    });
+  }
+
+  /// 评论列表
+  static Future<CommentList> commentList(String targetId, String targetType,
+      {Map loadMoreKey}) {
+    Map<String, dynamic> param = {
+      'targetId': targetId,
+      'targetType': targetType,
+    };
+
+    if (loadMoreKey != null) {
+      param['loadMoreKey'] = loadMoreKey;
+    }
+
+    return _dio.post('/1.0/comments/listPrimary', data: param).then((value) {
+      return CommentList.fromJson(value.data);
+    });
+  }
+
+  static initDio() async {
     if (_init) return;
 
     String deviceId = await SimpleStorage.getString(key_device_id);
@@ -145,6 +165,20 @@ class ApiRequest {
       key_device_id: deviceId
     }));
 
+    /// proxy
+    if (!const bool.fromEnvironment('dart.vm.product')) {
+      /// 不是 release
+      (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (client) {
+        client.findProxy = (url) {
+          return "PROXY 172.21.12.127:8888";
+        };
+        //抓Https包设置
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
+      };
+    }
+
     /// business
     _dio.interceptors.add(BusinessInterceptor());
     _init = true;
@@ -162,31 +196,5 @@ class ApiRequest {
     }
     debugPrint("genera password: $password");
     return password;
-  }
-
-  static _handleError(error) {
-    if (error is DioError) {
-      DioError dioError = error;
-      if (dioError.response.statusCode == 401) {
-        /// 登录失效，刷新 token
-        if (_refreshToken) {
-          debugPrint("token 失效，但已经在刷新 token 中了");
-          return;
-        }
-        _refreshToken = true;
-        refreshToken().then((value) async {
-          _refreshToken = false;
-          debugPrint("刷新 token: $value");
-          if (value) {
-            /// 刷新缓存
-            await LoginState.init();
-            Global.eventBus.fire(RefreshTokenEvent());
-          }
-        }).catchError((value) {
-          _refreshToken = false;
-          return false;
-        });
-      }
-    } else {}
   }
 }

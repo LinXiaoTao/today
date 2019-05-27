@@ -2,6 +2,7 @@ import 'package:today/ui/ui_base.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:photo_view/photo_view.dart';
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class PictureDetailPage extends StatefulWidget {
   final List<Picture> pictures;
@@ -44,10 +45,11 @@ class _PictureDetailPageState extends State<PictureDetailPage> {
             builder: (context, index) {
               Picture picture = widget.pictures[index];
               return PhotoViewGalleryPageOptions(
-                imageProvider: NetworkImage(picture.picUrl, headers: {
-                  key_access_token: LoginState.accessToken,
-                  key_device_id: LoginState.deviceId
-                }),
+                imageProvider: CachedNetworkImageProvider(picture.picUrl,
+                    headers: {
+                      key_access_token: LoginState.accessToken,
+                      key_device_id: LoginState.deviceId
+                    }),
                 heroTag: picture.picUrl,
                 minScale: PhotoViewComputedScale.contained,
                 initialScale: PhotoViewComputedScale.contained,

@@ -1,5 +1,5 @@
 import 'package:today/ui/ui_base.dart';
-import 'package:today/ui/page/home.dart';
+import 'package:today/ui/page/main/main.dart';
 import 'package:today/data/state/login.dart';
 
 class LoginPage extends StatelessWidget {
@@ -17,7 +17,7 @@ class LoginPage extends StatelessWidget {
               await LoginState.init();
               Navigator.of(context)
                   .pushReplacement(MaterialPageRoute(builder: (context) {
-                return HomePage();
+                return MainPage();
               }));
             },
             child: Text("注册"),
