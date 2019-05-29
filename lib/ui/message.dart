@@ -1,6 +1,7 @@
 import 'package:today/ui/ui_base.dart';
 import 'package:today/data/model/recommendfeed.dart';
 import 'package:today/ui/page/picture_detail.dart';
+import 'package:today/ui/page/message/message_detail.dart';
 
 class MessageItem extends StatelessWidget {
   final RecommendItem item;
@@ -64,9 +65,9 @@ class MessageItem extends StatelessWidget {
     return Column(
       children: <Widget>[
         Container(
+          color: Colors.white,
           margin: EdgeInsets.only(
               top: (needMarginTop ? AppDimensions.primaryPadding + 3 : 0)),
-          color: Colors.white,
           child: Column(
             children: <Widget>[
               Container(
@@ -132,8 +133,31 @@ class MessageItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        _RichTextWidget(bodyItem),
-                        _createContentWidget(bodyItem, context),
+                        Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              child: SizedBox(
+                                width: layout.maxWidth,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    RichTextWidget(bodyItem),
+                                    MessageBodyWidget(bodyItem),
+                                  ],
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.of(context)
+                                    .push(MaterialPageRoute(builder: (context) {
+                                  return MessageDetailPage(
+                                    id: item.id,
+                                    ref: bodyItem.user.ref,
+                                    pageName: 'tab_recommend',
+                                  );
+                                }));
+                              },
+                            )),
                         _createLinkInfoWidget(bodyItem),
                         SizedBox(
                           height: AppDimensions.primaryPadding,
@@ -147,9 +171,9 @@ class MessageItem extends StatelessWidget {
                             children: <Widget>[
                               AppNetWorkImage(
                                 src: user.avatarImage.thumbnailUrl,
-                                width: 30,
-                                height: 30,
-                                borderRadius: BorderRadius.circular(15),
+                                width: 26,
+                                height: 26,
+                                borderRadius: BorderRadius.circular(13),
                               ),
                               SizedBox(
                                 width: AppDimensions.smallPadding,
@@ -331,7 +355,7 @@ class MessageItem extends StatelessWidget {
                                     return SizedBox(
                                       width: measure['w'],
                                       height: measure['h'],
-                                      child: _createImageType(
+                                      child: MessageBodyWidget._createImageType(
                                           topComment.pictures.first),
                                     );
                                   }),
@@ -350,207 +374,12 @@ class MessageItem extends StatelessWidget {
                   color: AppColors.dividerGrey,
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: AppDimensions.primaryPadding, vertical: 15),
-                child: Row(
-                  children: <Widget>[
-                    Image.asset('images/ic_messages_like_unselected.png'),
-                    SizedBox(
-                      width: 4,
-                    ),
-                    Text(bodyItem.likeCount.toString(),
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.tipsTextColor)),
-                    SizedBox(
-                      width: 80,
-                    ),
-                    Image.asset('images/ic_messages_comment.png'),
-                    SizedBox(
-                      width: 4,
-                    ),
-                    Text(bodyItem.commentCount.toString(),
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.tipsTextColor)),
-                    SizedBox(
-                      width: 80,
-                    ),
-                    Image.asset('images/ic_messages_share.png'),
-                    SizedBox(
-                      width: 4,
-                    ),
-                    Text(bodyItem.shareCount.toString(),
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.tipsTextColor)),
-                    Spacer(),
-                    Image.asset('images/ic_messages_more.png'),
-                  ],
-                ),
-              ),
+              CommentWidget(bodyItem: bodyItem),
             ],
           ),
         ),
       ],
     );
-  }
-
-  Widget _createContentWidget(Message bodyItem, BuildContext context) {
-    if (bodyItem.video != null) {
-      /// video
-      /// fix width
-      var video = bodyItem.video;
-      return Container(
-        margin: EdgeInsets.only(top: AppDimensions.smallPadding),
-        child: LayoutBuilder(builder: (context, constraints) {
-          debugPrint(
-              "${bodyItem.content}: maxWidth = ${constraints.maxWidth}; maxHeight = ${constraints.maxHeight}");
-          debugPrint("vidoe img: ${video.image.thumbnailUrl}");
-          return SizedBox(
-            width: constraints.maxWidth,
-            height: constraints.maxWidth.toDouble() / 2,
-            child: Stack(
-              children: <Widget>[
-                AppNetWorkImage(
-                  src: '${video.image.thumbnailUrl}.jpg',
-                  fit: BoxFit.fitWidth,
-                  width: constraints.maxWidth,
-                  alignment: Alignment.centerLeft,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                Align(
-                  child:
-                      Image.asset("images/ic_mediaplayer_videoplayer_play.png"),
-                )
-              ],
-            ),
-          );
-        }),
-      );
-    } else if (bodyItem.pictures.isNotEmpty) {
-      /// 图片
-
-      List<Picture> pictures = bodyItem.pictures;
-
-      if (pictures.length == 1) {
-        /// 单个
-
-        if (pictures.single.width <= 0 || pictures.single.height <= 0) {
-          return SizedBox(
-            width: 0,
-            height: 0,
-          );
-        }
-
-        double width = pictures.single.width.toDouble();
-        double height = pictures.single.height.toDouble();
-        double maxWidth = MediaQuery.of(context).size.width;
-        Map measure = ImageUtil.measureImageSize(
-          srcSizes: {'w': width, 'h': height},
-          maxSizes: {'w': maxWidth * 2 / 3, 'h': maxWidth / 2},
-        );
-
-        return Column(
-          children: <Widget>[
-            SizedBox(
-              height: AppDimensions.smallPadding,
-            ),
-            LayoutBuilder(
-              builder: (context, layout) {
-                return Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    Hero(
-                      tag: pictures.single.picUrl,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (context) {
-                              return PictureDetailPage(pictures);
-                            }));
-                          },
-                          child: AppNetWorkImage(
-                            src: pictures.single.thumbnailUrl,
-                            width: measure['w'],
-                            height: measure['h'],
-                            fit: BoxFit.fill,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                        width: measure['w'],
-                        height: measure['h'],
-                        child: _createImageType(pictures.single)),
-                  ],
-                );
-              },
-            ),
-          ],
-        );
-      } else {
-        /// 九宫格
-
-        int axisCount = 3;
-        return GridView.builder(
-          shrinkWrap: true,
-          padding: EdgeInsets.only(
-              top: (bodyItem.content.trim().isEmpty
-                  ? 0
-                  : AppDimensions.smallPadding)),
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: axisCount,
-              mainAxisSpacing: AppDimensions.smallPadding,
-              crossAxisSpacing: AppDimensions.smallPadding),
-          itemBuilder: (context, index) {
-            var picture = pictures[index];
-            return LayoutBuilder(
-              builder: (context, layout) {
-                return Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    Hero(
-                      tag: picture.picUrl,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (context) {
-                              return PictureDetailPage(
-                                pictures,
-                                initIndex: index,
-                              );
-                            }));
-                          },
-                          child: AppNetWorkImage(
-                            src: picture.thumbnailUrl,
-                            width: layout.maxWidth,
-                            height: layout.maxWidth,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Builder(builder: (_) {
-                      return _createImageType(picture);
-                    }),
-                  ],
-                );
-              },
-            );
-          },
-          itemCount: pictures.length,
-        );
-      }
-    } else {
-      /// 纯文字
-      return SizedBox(
-        width: 0,
-        height: 0,
-      );
-    }
   }
 
   Widget _createLinkInfoWidget(Message bodyItem) {
@@ -642,36 +471,60 @@ class MessageItem extends StatelessWidget {
       );
     }
   }
+}
 
-  Widget _createImageType(Picture picture) {
-    if (picture.format == 'gif') {
-      /// gif
-      return Align(
-        alignment: Alignment.bottomRight,
-        child: Padding(
-          padding: EdgeInsets.all(AppDimensions.smallPadding),
-          child: Image.asset('images/ic_messages_pictype_gif.png'),
-        ),
-      );
-    } else if (picture.height > picture.width * 3) {
-      /// long
-      return Align(
-        alignment: Alignment.bottomRight,
-        child: Padding(
-          padding: EdgeInsets.all(AppDimensions.smallPadding),
-          child: Image.asset('images/ic_messages_pictype_long_pic.png'),
-        ),
-      );
-    } else {
-      return SizedBox();
-    }
+class CommentWidget extends StatelessWidget {
+  const CommentWidget({
+    Key key,
+    @required this.bodyItem,
+  }) : super(key: key);
+
+  final Message bodyItem;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: AppDimensions.primaryPadding, vertical: 15),
+      child: Row(
+        children: <Widget>[
+          Image.asset('images/ic_messages_like_unselected.png'),
+          SizedBox(
+            width: 4,
+          ),
+          Text(bodyItem.likeCount.toString(),
+              style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
+          SizedBox(
+            width: 80,
+          ),
+          Image.asset('images/ic_messages_comment.png'),
+          SizedBox(
+            width: 4,
+          ),
+          Text(bodyItem.commentCount.toString(),
+              style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
+          SizedBox(
+            width: 80,
+          ),
+          Image.asset('images/ic_messages_share.png'),
+          SizedBox(
+            width: 4,
+          ),
+          Text(bodyItem.shareCount.toString(),
+              style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
+          Spacer(),
+          Image.asset('images/ic_messages_more.png'),
+        ],
+      ),
+    );
   }
 }
 
-class _RichTextWidget extends StatelessWidget {
+class RichTextWidget extends StatelessWidget {
   final Message bodyItem;
+  final bool showFullContent;
 
-  _RichTextWidget(this.bodyItem);
+  RichTextWidget(this.bodyItem, {this.showFullContent = false});
 
   @override
   Widget build(BuildContext context) {
@@ -757,7 +610,7 @@ class _RichTextWidget extends StatelessWidget {
 
               debugPrint("text height = ${painter.height}; line = $textLine");
 
-              if (textLine > 8) {
+              if (!showFullContent && textLine > 8) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -785,5 +638,209 @@ class _RichTextWidget extends StatelessWidget {
                 content,
               );
             })));
+  }
+}
+
+class MessageBodyWidget extends StatelessWidget {
+  final Message bodyItem;
+
+  MessageBodyWidget(this.bodyItem);
+
+  @override
+  Widget build(BuildContext context) {
+    return _createContentWidget(bodyItem, context);
+  }
+
+  Widget _createContentWidget(Message bodyItem, BuildContext context) {
+    if (bodyItem.video != null) {
+      /// video
+      /// fix width
+      var video = bodyItem.video;
+      return Container(
+        margin: EdgeInsets.only(top: AppDimensions.smallPadding),
+        child: LayoutBuilder(builder: (context, constraints) {
+          debugPrint(
+              "${bodyItem.content}: maxWidth = ${constraints.maxWidth}; maxHeight = ${constraints.maxHeight}");
+          debugPrint("vidoe img: ${video.image.thumbnailUrl}");
+          return SizedBox(
+            width: constraints.maxWidth,
+            height: constraints.maxWidth.toDouble() / 2,
+            child: Stack(
+              children: <Widget>[
+                AppNetWorkImage(
+                  src: '${video.image.thumbnailUrl}.jpg',
+                  fit: BoxFit.fitWidth,
+                  width: constraints.maxWidth,
+                  alignment: Alignment.centerLeft,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                Align(
+                  child:
+                      Image.asset("images/ic_mediaplayer_videoplayer_play.png"),
+                )
+              ],
+            ),
+          );
+        }),
+      );
+    } else if (bodyItem.pictures.isNotEmpty) {
+      /// 图片
+
+      List<Picture> pictures = bodyItem.pictures;
+
+      if (pictures.length == 1) {
+        /// 单个
+        return SingleImageWidget(pictures.single);
+      } else {
+        /// 九宫格
+
+        int axisCount = 3;
+        return GridView.builder(
+          shrinkWrap: true,
+          padding: EdgeInsets.only(
+              top: (bodyItem.content.trim().isEmpty
+                  ? 0
+                  : AppDimensions.smallPadding)),
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: axisCount,
+              mainAxisSpacing: AppDimensions.smallPadding,
+              crossAxisSpacing: AppDimensions.smallPadding),
+          itemBuilder: (context, index) {
+            var picture = pictures[index];
+            return LayoutBuilder(
+              builder: (context, layout) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    Hero(
+                      tag: picture.picUrl,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (context) {
+                              return PictureDetailPage(
+                                pictures,
+                                initIndex: index,
+                              );
+                            }));
+                          },
+                          child: AppNetWorkImage(
+                            src: picture.thumbnailUrl,
+                            width: layout.maxWidth,
+                            height: layout.maxWidth,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Builder(builder: (_) {
+                      return _createImageType(picture);
+                    }),
+                  ],
+                );
+              },
+            );
+          },
+          itemCount: pictures.length,
+        );
+      }
+    } else {
+      /// 纯文字
+      return SizedBox(
+        width: 0,
+        height: 0,
+      );
+    }
+  }
+
+  static Widget _createImageType(Picture picture) {
+    if (picture.format == 'gif') {
+      /// gif
+      return Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: EdgeInsets.all(AppDimensions.smallPadding),
+          child: Image.asset('images/ic_messages_pictype_gif.png'),
+        ),
+      );
+    } else if (picture.height > picture.width * 3) {
+      /// long
+      return Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: EdgeInsets.all(AppDimensions.smallPadding),
+          child: Image.asset('images/ic_messages_pictype_long_pic.png'),
+        ),
+      );
+    } else {
+      return SizedBox();
+    }
+  }
+}
+
+class SingleImageWidget extends StatelessWidget {
+  final Picture picture;
+
+  SingleImageWidget(this.picture);
+
+  @override
+  Widget build(BuildContext context) {
+    if (picture.width <= 0 || picture.height <= 0) {
+      return SizedBox(
+        width: 0,
+        height: 0,
+      );
+    }
+
+    double width = picture.width.toDouble();
+    double height = picture.height.toDouble();
+    double maxWidth = MediaQuery.of(context).size.width;
+    Map measure = ImageUtil.measureImageSize(
+      srcSizes: {'w': width, 'h': height},
+      maxSizes: {'w': maxWidth * 2 / 3, 'h': maxWidth / 2},
+    );
+
+    return Column(
+      children: <Widget>[
+        SizedBox(
+          height: AppDimensions.smallPadding,
+        ),
+        LayoutBuilder(
+          builder: (context, layout) {
+            return Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Hero(
+                  tag: picture.picUrl,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(builder: (context) {
+                          return PictureDetailPage([picture]);
+                        }));
+                      },
+                      child: AppNetWorkImage(
+                        src: picture.thumbnailUrl,
+                        width: measure['w'],
+                        height: measure['h'],
+                        fit: BoxFit.fill,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                    width: measure['w'],
+                    height: measure['h'],
+                    child: MessageBodyWidget._createImageType(picture)),
+              ],
+            );
+          },
+        ),
+      ],
+    );
   }
 }

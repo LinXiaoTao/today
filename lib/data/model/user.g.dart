@@ -36,7 +36,8 @@ UserInfo _$UserInfoFromJson(Map json) {
       json['gender'] as String,
       json['city'] as String,
       json['country'] as String,
-      json['province'] as String);
+      json['province'] as String,
+      json['ref'] as String);
 }
 
 Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
@@ -59,7 +60,8 @@ Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
       'gender': instance.gender,
       'city': instance.city,
       'country': instance.country,
-      'province': instance.province
+      'province': instance.province,
+      'ref': instance.ref
     };
 
 UserAvatar _$UserAvatarFromJson(Map json) {

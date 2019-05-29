@@ -75,7 +75,7 @@ class AppColors {
 
   static final tipsTextColor = Color(0xFF999999);
 
-  static final statusBarColor = yellow;
+  static final statusBarColor = Colors.white;
 
   static final accentColor = yellow;
 

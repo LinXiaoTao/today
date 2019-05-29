@@ -121,6 +121,22 @@ class ApiRequest {
     });
   }
 
+  /// 相关消息
+  static Future<List<Message>> listRelated(String id, {String pageName}) {
+    Map<String, dynamic> queryParameters = {'id': id};
+    if (pageName != null) {
+      queryParameters['pageName'] = pageName;
+    }
+
+    return _dio
+        .get('/1.0/originalPosts/listRelated', queryParameters: queryParameters)
+        .then((value) {
+      return (value.data['data'] as List).map((item) {
+        return Message.fromJson(item);
+      }).toList();
+    });
+  }
+
   /// 评论列表
   static Future<CommentList> commentList(String targetId, String targetType,
       {Map loadMoreKey}) {

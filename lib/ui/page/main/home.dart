@@ -6,6 +6,7 @@ import 'package:today/ui/message.dart';
 import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:today/data/repository/recommend_model.dart';
+import 'package:today/ui/page/message/message_detail.dart';
 
 class HomePage extends StatelessWidget {
   final RecommendModel _model = RecommendModel();
@@ -108,7 +109,7 @@ class _HomeBodyState extends State<_HomeBody>
           return Column(
             children: <Widget>[
               Container(
-                color: AppColors.statusBarColor,
+                color: AppColors.accentColor,
                 height: MediaQuery.of(context).padding.top,
               ),
               _SearchWidget(
@@ -214,7 +215,7 @@ class _SearchWidget extends StatelessWidget {
       /// 我艹，固定了宽度才可以。。。迷
       width: MediaQuery.of(context).size.width,
       height: height,
-      color: AppColors.statusBarColor,
+      color: AppColors.accentColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[

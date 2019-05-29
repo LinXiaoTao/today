@@ -50,6 +50,8 @@ class UserInfo {
 
   final String province;
 
+  final String ref;
+
   UserInfo(
       this.username,
       this.screenName,
@@ -70,7 +72,8 @@ class UserInfo {
       this.gender,
       this.city,
       this.country,
-      this.province);
+      this.province,
+      this.ref);
 
   factory UserInfo.fromJson(Map json) => _$UserInfoFromJson(json);
 

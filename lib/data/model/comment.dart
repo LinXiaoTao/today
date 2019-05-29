@@ -48,6 +48,7 @@ class Comment {
   @JsonKey(defaultValue: [])
   final List<Picture> pictures;
 
+  @JsonKey(defaultValue: false)
   final bool liked;
 
   @JsonKey(defaultValue: [])
