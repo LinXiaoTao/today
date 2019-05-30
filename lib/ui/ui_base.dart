@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 export 'package:flutter/material.dart';
 export 'package:today/data/network/request.dart';
 export 'package:today/data/storage/simple_storage.dart';
@@ -16,6 +17,7 @@ export 'package:flutter/gestures.dart';
 export 'package:scoped_model/scoped_model.dart';
 export 'package:fluttertoast/fluttertoast.dart';
 export 'package:flutter_spinkit/flutter_spinkit.dart';
+export 'package:flutter_easyrefresh/phoenix_header.dart';
 
 class NormalPage extends StatefulWidget {
   final Widget title;
@@ -66,6 +68,28 @@ class NormalTitle extends StatelessWidget {
   }
 }
 
+class PageLoadingWidget extends StatelessWidget {
+  const PageLoadingWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 60,
+      padding: EdgeInsets.symmetric(vertical: 20),
+      child: SizedBox(
+        height: 20,
+        child: SpinKitThreeBounce(
+          size: 20,
+          color: Colors.grey,
+          duration: Duration(milliseconds: 1000),
+        ),
+      ),
+    );
+  }
+}
+
 class AppColors {
   AppColors._();
 
@@ -98,6 +122,8 @@ class AppColors {
   static final dividerGrey = Color(0xFFDBDBDB);
 
   static final darkGrey = Color(0xFFF0F3F5);
+
+  static final commentBackgroundGray = Colors.grey[100];
 }
 
 class AppDimensions {

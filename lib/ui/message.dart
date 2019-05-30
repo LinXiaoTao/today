@@ -1,7 +1,13 @@
+import 'package:intl/intl.dart' as intl;
+import 'package:today/ui/page/message/comment_detail.dart';
 import 'package:today/ui/ui_base.dart';
 import 'package:today/data/model/recommendfeed.dart';
 import 'package:today/ui/page/picture_detail.dart';
 import 'package:today/ui/page/message/message_detail.dart';
+import 'package:today/widget/real_rich_text.dart';
+
+/// 时间少了 8 小时
+final intl.DateFormat _dateFormat = intl.DateFormat('MM/dd HH:mm');
 
 class MessageItem extends StatelessWidget {
   final RecommendItem item;
@@ -62,12 +68,21 @@ class MessageItem extends StatelessWidget {
           )));
     }
 
-    return Column(
-      children: <Widget>[
-        Container(
-          color: Colors.white,
-          margin: EdgeInsets.only(
-              top: (needMarginTop ? AppDimensions.primaryPadding + 3 : 0)),
+    return Container(
+      margin: EdgeInsets.only(
+          top: (needMarginTop ? AppDimensions.primaryPadding + 3 : 0)),
+      child: Material(
+        color: Colors.white,
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+              return MessageDetailPage(
+                id: item.id,
+                ref: bodyItem.user.ref,
+                pageName: 'tab_recommend',
+              );
+            }));
+          },
           child: Column(
             children: <Widget>[
               Container(
@@ -133,32 +148,9 @@ class MessageItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              child: SizedBox(
-                                width: layout.maxWidth,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    RichTextWidget(bodyItem),
-                                    MessageBodyWidget(bodyItem),
-                                  ],
-                                ),
-                              ),
-                              onTap: () {
-                                Navigator.of(context)
-                                    .push(MaterialPageRoute(builder: (context) {
-                                  return MessageDetailPage(
-                                    id: item.id,
-                                    ref: bodyItem.user.ref,
-                                    pageName: 'tab_recommend',
-                                  );
-                                }));
-                              },
-                            )),
-                        _createLinkInfoWidget(bodyItem),
+                        RichTextWidget(bodyItem),
+                        MessageBodyWidget(bodyItem),
+                        LinkInfoWidget(bodyItem),
                         SizedBox(
                           height: AppDimensions.primaryPadding,
                         ),
@@ -178,41 +170,7 @@ class MessageItem extends StatelessWidget {
                               SizedBox(
                                 width: AppDimensions.smallPadding,
                               ),
-                              Text(
-                                user.screenName,
-                                style: TextStyle(
-                                    color: AppColors.primaryTextColor,
-                                    fontSize: 12),
-                              ),
-                              SizedBox(
-                                width: AppDimensions.smallPadding,
-                              ),
-                              Builder(builder: (context) {
-                                debugPrint(
-                                    "trailingIcons = ${user.trailingIcons}");
-
-                                if (user.trailingIcons.isEmpty) {
-                                  return SizedBox();
-                                }
-
-                                List<Widget> images = [];
-
-                                for (TrailingIcons icon in user.trailingIcons) {
-                                  images.add(AppNetWorkImage(
-                                    src: icon.picUrl,
-                                    width: 12,
-                                    height: 12,
-                                    borderRadius: BorderRadius.circular(0),
-                                  ));
-                                  images.add(SizedBox(
-                                    width: 1,
-                                  ));
-                                }
-
-                                return Row(
-                                  children: images,
-                                );
-                              }),
+                              ScreenNameWidget(user: user),
                               (user.trailingIcons.isEmpty
                                   ? SizedBox()
                                   : SizedBox(
@@ -329,7 +287,7 @@ class MessageItem extends StatelessWidget {
                                 alignment: Alignment.center,
                                 children: <Widget>[
                                   Hero(
-                                    tag: topComment.pictures.first.picUrl,
+                                    tag: topComment.pictures.first,
                                     child: Material(
                                       color: Colors.transparent,
                                       child: InkWell(
@@ -378,8 +336,19 @@ class MessageItem extends StatelessWidget {
             ],
           ),
         ),
-      ],
+      ),
     );
+  }
+}
+
+class LinkInfoWidget extends StatelessWidget {
+  final Message bodyItem;
+
+  LinkInfoWidget(this.bodyItem);
+
+  @override
+  Widget build(BuildContext context) {
+    return _createLinkInfoWidget(bodyItem);
   }
 
   Widget _createLinkInfoWidget(Message bodyItem) {
@@ -441,6 +410,30 @@ class MessageItem extends StatelessWidget {
             ))
           ],
         ),
+      );
+    } else if (linkInfo.video != null) {
+      Video video = linkInfo.video;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          VideoPreviewWidget(video: video),
+          LayoutBuilder(
+            builder: (_, layout) {
+              return Container(
+                width: layout.maxWidth,
+                color: AppColors.topicBackground,
+                padding: EdgeInsets.symmetric(
+                    vertical: AppDimensions.primaryPadding * 2,
+                    horizontal: AppDimensions.primaryPadding),
+                child: Text(
+                  linkInfo.title,
+                  style: TextStyle(color: AppColors.tipsTextColor),
+                ),
+              );
+            },
+          )
+        ],
       );
     } else {
       /// 分享链接
@@ -599,8 +592,8 @@ class RichTextWidget extends StatelessWidget {
               }
 
               var painter = TextPainter(
-                textDirection: TextDirection.ltr,
                 text: content,
+                textDirection: TextDirection.ltr,
               );
 
               debugPrint("maxWidth = ${layout.maxWidth}");
@@ -658,30 +651,7 @@ class MessageBodyWidget extends StatelessWidget {
       var video = bodyItem.video;
       return Container(
         margin: EdgeInsets.only(top: AppDimensions.smallPadding),
-        child: LayoutBuilder(builder: (context, constraints) {
-          debugPrint(
-              "${bodyItem.content}: maxWidth = ${constraints.maxWidth}; maxHeight = ${constraints.maxHeight}");
-          debugPrint("vidoe img: ${video.image.thumbnailUrl}");
-          return SizedBox(
-            width: constraints.maxWidth,
-            height: constraints.maxWidth.toDouble() / 2,
-            child: Stack(
-              children: <Widget>[
-                AppNetWorkImage(
-                  src: '${video.image.thumbnailUrl}.jpg',
-                  fit: BoxFit.fitWidth,
-                  width: constraints.maxWidth,
-                  alignment: Alignment.centerLeft,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                Align(
-                  child:
-                      Image.asset("images/ic_mediaplayer_videoplayer_play.png"),
-                )
-              ],
-            ),
-          );
-        }),
+        child: VideoPreviewWidget(video: video),
       );
     } else if (bodyItem.pictures.isNotEmpty) {
       /// 图片
@@ -714,7 +684,7 @@ class MessageBodyWidget extends StatelessWidget {
                   alignment: Alignment.center,
                   children: <Widget>[
                     Hero(
-                      tag: picture.picUrl,
+                      tag: picture,
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
@@ -780,6 +750,39 @@ class MessageBodyWidget extends StatelessWidget {
   }
 }
 
+class VideoPreviewWidget extends StatelessWidget {
+  const VideoPreviewWidget({
+    Key key,
+    @required this.video,
+  }) : super(key: key);
+
+  final Video video;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      return SizedBox(
+        width: constraints.maxWidth,
+        height: constraints.maxWidth.toDouble() / 2,
+        child: Stack(
+          children: <Widget>[
+            AppNetWorkImage(
+              src: '${video.image.thumbnailUrl}.jpg',
+              fit: BoxFit.fitWidth,
+              width: constraints.maxWidth,
+              alignment: Alignment.centerLeft,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            Align(
+              child: Image.asset("images/ic_mediaplayer_videoplayer_play.png"),
+            )
+          ],
+        ),
+      );
+    });
+  }
+}
+
 class SingleImageWidget extends StatelessWidget {
   final Picture picture;
 
@@ -813,7 +816,7 @@ class SingleImageWidget extends StatelessWidget {
               alignment: Alignment.center,
               children: <Widget>[
                 Hero(
-                  tag: picture.picUrl,
+                  tag: picture,
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -841,6 +844,313 @@ class SingleImageWidget extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class ScreenNameWidget extends StatelessWidget {
+  const ScreenNameWidget({
+    Key key,
+    @required this.user,
+  }) : super(key: key);
+
+  final UserInfo user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Text(
+          user.screenName,
+          style: TextStyle(color: AppColors.primaryTextColor),
+        ),
+        SizedBox(
+          width: AppDimensions.smallPadding,
+        ),
+        Builder(builder: (context) {
+          if (user.trailingIcons.isEmpty) {
+            return SizedBox();
+          }
+
+          List<Widget> images = [];
+
+          for (TrailingIcons icon in user.trailingIcons) {
+            images.add(AppNetWorkImage(
+              src: icon.picUrl,
+              width: 15,
+              height: 15,
+              borderRadius: BorderRadius.circular(0),
+            ));
+            images.add(SizedBox(
+              width: 1,
+            ));
+          }
+
+          return Row(
+            children: images,
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class CommentListWidget extends StatelessWidget {
+  final List<Comment> commentData;
+  final String title;
+
+  CommentListWidget(this.title, this.commentData);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.symmetric(horizontal: AppDimensions.primaryPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(
+            height: AppDimensions.primaryPadding,
+          ),
+          Text(
+            title,
+            style: TextStyle(color: AppColors.primaryTextColor),
+          ),
+          SizedBox(
+            height: AppDimensions.primaryPadding,
+          ),
+          Divider(
+            height: 1,
+            color: AppColors.dividerGrey,
+          ),
+          ListView.separated(
+            itemBuilder: (_, index) {
+              Comment comment = commentData[index];
+              return CommentItemWidget(comment);
+            },
+            separatorBuilder: (_, index) {
+              return Padding(
+                padding: EdgeInsets.only(
+                    left: 20 +
+                        AppDimensions.primaryPadding +
+                        AppDimensions.primaryPadding),
+                child: Divider(
+                  height: 1,
+                  color: AppColors.dividerGrey,
+                ),
+              );
+            },
+            itemCount: commentData.length,
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CommentItemWidget extends StatelessWidget {
+  final Comment comment;
+  final bool needJumpDetail;
+
+  CommentItemWidget(this.comment, {this.needJumpDetail = true});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: AppDimensions.primaryPadding),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          AppNetWorkImage(
+            src: comment.user.avatarImage.thumbnailUrl,
+            width: 40,
+            height: 40,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          SizedBox(
+            width: AppDimensions.primaryPadding,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    ScreenNameWidget(user: comment.user),
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          '${comment.likeCount}',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.tipsTextColor),
+                        ),
+                        SizedBox(
+                          width: AppDimensions.smallPadding,
+                        ),
+                        Image.asset((comment.liked
+                            ? 'images/ic_comment_like_selected.png'
+                            : 'images/ic_comment_like.png')),
+                      ],
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: AppDimensions.smallPadding,
+                ),
+                Text(
+                  _dateFormat
+                      .format(DateTime.parse(comment.createdAt).toLocal()),
+                  style:
+                      TextStyle(fontSize: 10, color: AppColors.tipsTextColor),
+                ),
+                Builder(
+                  builder: (_) {
+                    if (comment.content.isEmpty) return SizedBox();
+
+                    return Column(
+                      children: <Widget>[
+                        SizedBox(
+                          height: AppDimensions.smallPadding,
+                        ),
+                        Text(
+                          comment.content,
+                          style: TextStyle(
+                              color: AppColors.primaryTextColor, fontSize: 13),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                Builder(builder: (_) {
+                  if (comment.pictures.isEmpty) return SizedBox();
+
+                  return SingleImageWidget(comment.pictures.first);
+                }),
+                Builder(builder: (_) {
+                  /// 热门回复
+                  if (comment.hotReplies.isEmpty) return SizedBox();
+
+                  List<Widget> commentList = comment.hotReplies.map((data) {
+                    List<TextSpan> child = [];
+
+                    int index = comment.hotReplies.indexOf(data);
+
+                    if (data.level > 2) {
+                      /// 多级回复
+                      child.add(TextSpan(
+                          text: '${data.user.screenName}',
+                          style: TextStyle(
+                            color: AppColors.blue,
+                          )));
+                      child.add(TextSpan(text: ' 回复 '));
+                      child.add(TextSpan(
+                          text: '${data.replyToComment.user.screenName}：',
+                          style: TextStyle(
+                            color: AppColors.blue,
+                          )));
+                    } else {
+                      child.add(TextSpan(
+                          text: '${data.user.screenName}：',
+                          style: TextStyle(
+                            color: AppColors.blue,
+                          )));
+                    }
+
+                    if (data.content.isNotEmpty) {
+                      child.add(TextSpan(
+                        text: data.content,
+                      ));
+                    }
+
+                    if (data.pictures.isNotEmpty) {
+                      TapGestureRecognizer detail = TapGestureRecognizer();
+                      detail.onTap = () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(builder: (_) {
+                          return PictureDetailPage(
+                            data.pictures,
+                          );
+                        }));
+                      };
+
+                      child.add(ImageSpan(
+                          AssetImage('images/ic_feedback_sendpic.png'),
+                          imageWidth: 15,
+                          imageHeight: 15,
+                          color: AppColors.blue,
+                          margin: EdgeInsets.only(
+                              right: AppDimensions.smallPadding)));
+
+                      child.add(TextSpan(
+                        text: '查看图片',
+                        style: TextStyle(
+                          color: AppColors.blue,
+                        ),
+                        recognizer: detail,
+                      ));
+                    }
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                          bottom: (index != (comment.hotReplies.length - 1)
+                              ? AppDimensions.smallPadding
+                              : 0)),
+                      child: RealRichText(
+                        child,
+                        style: TextStyle(color: AppColors.primaryTextColor),
+                      ),
+                    );
+                  }).toList();
+
+                  if (comment.hotReplies.length < comment.replyCount) {
+                    commentList.add(Padding(
+                      padding: EdgeInsets.only(top: AppDimensions.smallPadding),
+                      child: Text(
+                        '共${comment.replyCount}条回复>',
+                        style: TextStyle(color: AppColors.blue),
+                      ),
+                    ));
+                  }
+
+                  return LayoutBuilder(
+                    builder: (_, layout) {
+                      return Container(
+                        width: layout.maxWidth,
+                        margin:
+                            EdgeInsets.only(top: AppDimensions.smallPadding),
+                        child: Material(
+                          color: AppColors.commentBackgroundGray,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (_) {
+                                return CommentDetailPage(comment);
+                              }));
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: AppDimensions.primaryPadding,
+                                  horizontal: AppDimensions.smallPadding),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: commentList,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 }

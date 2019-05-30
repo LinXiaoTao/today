@@ -154,6 +154,33 @@ class ApiRequest {
     });
   }
 
+  /// 评论详情
+  static Future<Comment> commentDetail(String id, String targetType) {
+    return _dio.get('/1.0/comments/get',
+        queryParameters: {'id': id, 'targetType': targetType}).then((value) {
+      return Comment.fromJson(value.data['data']);
+    });
+  }
+
+  /// 评论回复列表
+  static Future<CommentList> replyCommentList(
+      String primaryCommentId, String targetType,
+      {String order = 'LIKES', Map loadMoreKey}) {
+    Map data = {
+      'primaryCommentId': primaryCommentId,
+      'targetType': targetType,
+      'order': order,
+    };
+
+    if (loadMoreKey != null) {
+      data['loadMoreKey'] = loadMoreKey;
+    }
+
+    return _dio.post('/1.0/comments/list', data: data).then((value) {
+      return CommentList.fromJson(value.data);
+    });
+  }
+
   static initDio() async {
     if (_init) return;
 

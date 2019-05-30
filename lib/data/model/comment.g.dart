@@ -36,20 +36,20 @@ Comment _$CommentFromJson(Map json) {
       json['type'] as String,
       json['id'] as String,
       json['targetType'] as String,
-      json['targetId'] as String,
-      json['threadId'] as String,
+      json['targetId'] as String ?? '',
+      json['threadId'] as String ?? '',
       json['createdAt'] as String,
-      json['level'] as int,
-      json['content'] as String,
-      json['likeCount'] as int,
-      json['replyCount'] as int,
+      json['level'] as int ?? 1,
+      json['content'] as String ?? '',
+      json['likeCount'] as int ?? 0,
+      json['replyCount'] as int ?? 0,
       json['status'] as String,
       json['user'] == null ? null : UserInfo.fromJson(json['user'] as Map),
       (json['pictures'] as List)
               ?.map((e) => e == null ? null : Picture.fromJson(e as Map))
               ?.toList() ??
           [],
-      json['liked'] as bool,
+      json['liked'] as bool ?? false,
       (json['hotReplies'] as List)
               ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
               ?.toList() ??

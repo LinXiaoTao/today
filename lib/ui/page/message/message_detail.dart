@@ -1,13 +1,12 @@
+import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:intl/intl.dart';
 import 'package:today/ui/ui_base.dart';
 import 'package:today/data/repository/message_model.dart';
 import 'package:today/ui/message.dart';
-import 'package:flutter_easyrefresh/easy_refresh.dart';
-import 'package:flutter_easyrefresh/phoenix_header.dart';
-import 'package:intl/intl.dart';
 import 'package:today/data/repository/comment_model.dart';
 
-/// 时间少了 8 小时
-final DateFormat _dateFormat = DateFormat('MM/dd HH:mm', 'zh_CN');
+final DateFormat _dateFormat = DateFormat('MM/dd HH:mm');
 
 /// 消息详情
 class MessageDetailPage extends StatefulWidget {
@@ -27,6 +26,8 @@ class _MessageDetailState extends State<MessageDetailPage>
     with AfterLayoutMixin<MessageDetailPage> {
   final MessageModel _messageModel = MessageModel();
   final GlobalKey<PhoenixHeaderState> _refreshHeaderKey = GlobalKey();
+  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
+  final GlobalKey<__CommentListWidgetState> _commentListKey = GlobalKey();
 
   @override
   void afterFirstLayout(BuildContext context) {
@@ -56,7 +57,18 @@ class _MessageDetailState extends State<MessageDetailPage>
                 refreshHeader: PhoenixHeader(
                   key: _refreshHeaderKey,
                 ),
-                onRefresh: () {},
+                refreshFooter: BallPulseFooter(
+                  key: _loadMoreFooterKey,
+                  backgroundColor: Colors.transparent,
+                  color: AppColors.accentColor,
+                ),
+                onRefresh: () {
+                  afterFirstLayout(context);
+                  _commentListKey.currentState.refreshData();
+                },
+                loadMore: () {
+                  _commentListKey.currentState.refreshData(loadMore: true);
+                },
                 firstRefresh: false,
                 child: CustomScrollView(
                   slivers: <Widget>[
@@ -92,52 +104,16 @@ class _MessageDetailState extends State<MessageDetailPage>
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
-                                    Row(
-                                      children: <Widget>[
-                                        Text(
-                                          user.screenName,
-                                          style: TextStyle(
-                                              color:
-                                                  AppColors.primaryTextColor),
-                                        ),
-                                        SizedBox(
-                                          width: AppDimensions.smallPadding,
-                                        ),
-                                        Builder(builder: (context) {
-                                          if (user.trailingIcons.isEmpty) {
-                                            return SizedBox();
-                                          }
-
-                                          List<Widget> images = [];
-
-                                          for (TrailingIcons icon
-                                              in user.trailingIcons) {
-                                            images.add(AppNetWorkImage(
-                                              src: icon.picUrl,
-                                              width: 15,
-                                              height: 15,
-                                              borderRadius:
-                                                  BorderRadius.circular(0),
-                                            ));
-                                            images.add(SizedBox(
-                                              width: 1,
-                                            ));
-                                          }
-
-                                          return Row(
-                                            children: images,
-                                          );
-                                        }),
-                                      ],
-                                    ),
+                                    ScreenNameWidget(user: user),
                                     SizedBox(
                                       height: AppDimensions.smallPadding,
                                     ),
                                     Row(
                                       children: <Widget>[
                                         Text(
-                                          _dateFormat.format(DateTime.parse(
-                                              message.createdAt)),
+                                          _dateFormat.format(
+                                              DateTime.parse(message.createdAt)
+                                                  .toLocal()),
                                           style: TextStyle(
                                               fontSize: 12,
                                               color: AppColors.tipsTextColor),
@@ -206,6 +182,7 @@ class _MessageDetailState extends State<MessageDetailPage>
                               showFullContent: true,
                             ),
                             MessageBodyWidget(message),
+                            LinkInfoWidget(message),
                             SizedBox(
                               height: AppDimensions.primaryPadding,
                             ),
@@ -232,7 +209,7 @@ class _MessageDetailState extends State<MessageDetailPage>
                       ),
                     ),
                     SliverToBoxAdapter(
-                      child: _CommentListWidget(message),
+                      child: _CommentListWidget(message, _commentListKey),
                     )
                   ],
                 )),
@@ -300,28 +277,6 @@ class _MessageDetailState extends State<MessageDetailPage>
             ),
           )
         ],
-      ),
-    );
-  }
-}
-
-class PageLoadingWidget extends StatelessWidget {
-  const PageLoadingWidget({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 60,
-      padding: EdgeInsets.symmetric(vertical: 20),
-      child: SizedBox(
-        height: 20,
-        child: SpinKitThreeBounce(
-          size: 20,
-          color: Colors.grey,
-          duration: Duration(milliseconds: 1000),
-        ),
       ),
     );
   }
@@ -407,33 +362,51 @@ class _RelatedWidget extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                    MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
-                                  Text(
-                                    item.content,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                        top: AppDimensions.smallPadding / 2),
+                                    child: Text(
+                                      item.content,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                  Row(
-                                    children: <Widget>[
-                                      Image.asset(
-                                        'images/ic_personal_tab_my_topic.png',
-                                      ),
-                                      SizedBox(
-                                        width: AppDimensions.smallPadding / 2,
-                                      ),
-                                      Text(
-                                        item.topic.content,
-                                        style: TextStyle(
-                                            color: AppColors.tipsTextColor,
-                                            fontSize: 12),
-                                      )
-                                    ],
-                                  )
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                        bottom: AppDimensions.smallPadding / 2),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Opacity(
+                                          child: Image.asset(
+                                            'images/ic_personal_tab_my_topic.png',
+                                            color: Colors.white,
+                                            colorBlendMode: BlendMode.color,
+                                            width: 18,
+                                            height: 18,
+                                          ),
+                                          opacity: 0.8,
+                                        ),
+                                        SizedBox(
+                                          width: AppDimensions.smallPadding / 2,
+                                        ),
+                                        Text(
+                                          item.topic.content,
+                                          style: TextStyle(
+                                              color: AppColors.tipsTextColor,
+                                              fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                          )
+                          ),
+                          SizedBox(
+                            width: AppDimensions.primaryPadding,
+                          ),
                         ],
                       ),
                     );
@@ -467,7 +440,7 @@ class _RelatedWidget extends StatelessWidget {
 class _CommentListWidget extends StatefulWidget {
   final Message message;
 
-  _CommentListWidget(this.message);
+  _CommentListWidget(this.message, Key key) : super(key: key);
 
   @override
   __CommentListWidgetState createState() => __CommentListWidgetState();
@@ -494,189 +467,21 @@ class __CommentListWidgetState extends State<_CommentListWidget>
                 }
 
                 /// 热门评论
-                return Container(
-                  color: Colors.white,
-                  margin: EdgeInsets.only(bottom: AppDimensions.primaryPadding),
-                  padding: EdgeInsets.symmetric(
-                      horizontal: AppDimensions.primaryPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      SizedBox(
-                        height: AppDimensions.primaryPadding,
-                      ),
-                      Text(
-                        '热门评论',
-                        style: TextStyle(color: AppColors.primaryTextColor),
-                      ),
-                      SizedBox(
-                        height: AppDimensions.primaryPadding,
-                      ),
-                      Divider(
-                        height: 1,
-                        color: AppColors.dividerGrey,
-                      ),
-                      ListView.separated(
-                        itemBuilder: (_, index) {
-                          Comment comment =
-                              model.commentList.hotComments[index];
-                          return CommentItemWidget(comment);
-                        },
-                        separatorBuilder: (_, index) {
-                          return Padding(
-                            padding: EdgeInsets.only(
-                                left: 20 +
-                                    AppDimensions.primaryPadding +
-                                    AppDimensions.primaryPadding),
-                            child: Divider(
-                              height: 1,
-                              color: AppColors.dividerGrey,
-                            ),
-                          );
-                        },
-                        shrinkWrap: true,
-                        itemCount: model.commentList.hotComments.length,
-                        physics: NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                );
+                return CommentListWidget('热门评论', model.commentList.hotComments);
               }),
-              Builder(builder: (_) {
-                /// 最新评论
-                return Container(
-                  color: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                      horizontal: AppDimensions.primaryPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      SizedBox(
-                        height: AppDimensions.primaryPadding,
-                      ),
-                      Text(
-                        '最新评论',
-                        style: TextStyle(color: AppColors.primaryTextColor),
-                      ),
-                      SizedBox(
-                        height: AppDimensions.primaryPadding,
-                      ),
-                      Divider(
-                        height: 1,
-                        color: AppColors.dividerGrey,
-                      ),
-                      ListView.separated(
-                        itemBuilder: (_, index) {
-                          Comment comment = model.commentData[index];
-                          return CommentItemWidget(comment);
-                        },
-                        separatorBuilder: (_, index) {
-                          return Padding(
-                            padding: EdgeInsets.only(
-                                left: 20 +
-                                    AppDimensions.primaryPadding +
-                                    AppDimensions.primaryPadding),
-                            child: Divider(
-                              height: 1,
-                              color: AppColors.dividerGrey,
-                            ),
-                          );
-                        },
-                        itemCount: model.commentData.length,
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                );
-              }),
+              CommentListWidget('最新评论', model.commentData),
             ],
           );
         }));
   }
 
+  refreshData({bool loadMore = false}) {
+    _model.requestCommentList(widget.message.id, widget.message.type,
+        loadMore: loadMore);
+  }
+
   @override
   void afterFirstLayout(BuildContext context) {
-    _model.requestCommentList(widget.message.id, widget.message.type);
-  }
-}
-
-class CommentItemWidget extends StatelessWidget {
-  final Comment comment;
-
-  CommentItemWidget(this.comment);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: AppDimensions.primaryPadding),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          AppNetWorkImage(
-            src: comment.user.avatarImage.thumbnailUrl,
-            width: 40,
-            height: 40,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          SizedBox(
-            width: AppDimensions.primaryPadding,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      comment.user.screenName,
-                      style: TextStyle(
-                          color: AppColors.normalTextColor, fontSize: 13),
-                    ),
-                    Image.asset((comment.liked
-                        ? 'images/ic_comment_like.png'
-                        : 'images/ic_comment_like.png'))
-                  ],
-                ),
-                SizedBox(
-                  height: AppDimensions.smallPadding,
-                ),
-                Text(
-                  _dateFormat.format(DateTime.parse(comment.createdAt)),
-                  style:
-                      TextStyle(fontSize: 10, color: AppColors.tipsTextColor),
-                ),
-                Builder(
-                  builder: (_) {
-                    if (comment.content.isEmpty) return SizedBox();
-
-                    return Column(
-                      children: <Widget>[
-                        SizedBox(
-                          height: AppDimensions.smallPadding,
-                        ),
-                        Text(
-                          comment.content,
-                          style: TextStyle(
-                              color: AppColors.primaryTextColor, fontSize: 13),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                Builder(builder: (_) {
-                  if (comment.pictures.isEmpty) return SizedBox();
-
-                  return SingleImageWidget(comment.pictures.first);
-                })
-              ],
-            ),
-          )
-        ],
-      ),
-    );
+    refreshData();
   }
 }

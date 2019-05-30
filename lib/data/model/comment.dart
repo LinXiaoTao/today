@@ -32,12 +32,18 @@ class Comment {
   /// ORIGINAL_POST
   final String targetType;
 
+  @JsonKey(defaultValue: '')
   final String targetId;
+  @JsonKey(defaultValue: '')
   final String threadId;
   final String createdAt;
+  @JsonKey(defaultValue: 1)
   final int level;
+  @JsonKey(defaultValue: '')
   final String content;
+  @JsonKey(defaultValue: 0)
   final int likeCount;
+  @JsonKey(defaultValue: 0)
   final int replyCount;
 
   /// NORMAL

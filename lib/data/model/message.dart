@@ -113,8 +113,10 @@ class LinkInfo {
   final String linkUrl;
   final String source;
   final Audio audio;
+  final Video video;
 
-  LinkInfo(this.title, this.pictureUrl, this.linkUrl, this.source, this.audio);
+  LinkInfo(this.title, this.pictureUrl, this.linkUrl, this.source, this.audio,
+      this.video);
 
   factory LinkInfo.fromJson(Map json) => _$LinkInfoFromJson(json);
 

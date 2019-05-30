@@ -88,7 +88,8 @@ LinkInfo _$LinkInfoFromJson(Map json) {
       json['pictureUrl'] as String,
       json['linkUrl'] as String,
       json['source'] as String,
-      json['audio'] == null ? null : Audio.fromJson(json['audio'] as Map));
+      json['audio'] == null ? null : Audio.fromJson(json['audio'] as Map),
+      json['video'] == null ? null : Video.fromJson(json['video'] as Map));
 }
 
 Map<String, dynamic> _$LinkInfoToJson(LinkInfo instance) => <String, dynamic>{
@@ -96,7 +97,8 @@ Map<String, dynamic> _$LinkInfoToJson(LinkInfo instance) => <String, dynamic>{
       'pictureUrl': instance.pictureUrl,
       'linkUrl': instance.linkUrl,
       'source': instance.source,
-      'audio': instance.audio
+      'audio': instance.audio,
+      'video': instance.video
     };
 
 Audio _$AudioFromJson(Map json) {

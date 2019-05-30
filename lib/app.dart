@@ -5,12 +5,10 @@ import 'package:today/ui/page/main/main.dart';
 import 'package:today/util/global.dart';
 import 'package:today/ui/ui_base.dart';
 import 'package:today/data/network/request.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   await LoginState.init();
   await ApiRequest.initDio();
-  await initializeDateFormatting();
   runApp(TodayApp());
 }
 

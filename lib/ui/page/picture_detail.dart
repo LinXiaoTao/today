@@ -50,7 +50,7 @@ class _PictureDetailPageState extends State<PictureDetailPage> {
                       key_access_token: LoginState.accessToken,
                       key_device_id: LoginState.deviceId
                     }),
-                heroTag: picture.picUrl,
+                heroTag: picture,
                 minScale: PhotoViewComputedScale.contained,
                 initialScale: PhotoViewComputedScale.contained,
                 maxScale: 2.0,
