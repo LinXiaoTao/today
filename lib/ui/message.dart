@@ -5,8 +5,8 @@ import 'package:today/data/model/recommendfeed.dart';
 import 'package:today/ui/page/picture_detail.dart';
 import 'package:today/ui/page/message/message_detail.dart';
 import 'package:today/widget/real_rich_text.dart';
+import 'package:today/ui/page/video_player.dart';
 
-/// 时间少了 8 小时
 final intl.DateFormat _dateFormat = intl.DateFormat('MM/dd HH:mm');
 
 class MessageItem extends StatelessWidget {
@@ -43,6 +43,71 @@ class MessageItem extends StatelessWidget {
                 )
               ],
             ),
+          ),
+        ),
+      );
+    } else if (item.type == 'BULLETIN') {
+      debugPrint('BULLETIN viewType = ${item.viewType}');
+
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: AppDimensions.primaryPadding,
+          top: AppDimensions.primaryPadding,
+        ),
+        child: Material(
+          color: Colors.white,
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: AppDimensions.primaryPadding,
+                    horizontal: AppDimensions.primaryPadding),
+                child: Row(
+                  children: <Widget>[
+                    AppNetWorkImage(
+                      src: item.picture.thumbnailUrl,
+                      width: 60,
+                      height: 60,
+                    ),
+                    SizedBox(
+                      width: AppDimensions.primaryPadding,
+                    ),
+                    Expanded(
+                        child: SizedBox(
+                      height: 60,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            item.title,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: AppColors.primaryTextColor),
+                          ),
+                          Text(
+                            item.content,
+                            style: TextStyle(color: AppColors.normalTextColor),
+                          ),
+                        ],
+                      ),
+                    ))
+                  ],
+                ),
+              ),
+              Divider(
+                height: 0.5,
+                color: AppColors.dividerGrey,
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: AppDimensions.primaryPadding),
+                child: Text(
+                  item.button.text,
+                  style: TextStyle(fontSize: 12, color: AppColors.blue),
+                ),
+              )
+            ],
           ),
         ),
       );
@@ -417,7 +482,10 @@ class LinkInfoWidget extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          VideoPreviewWidget(video: video),
+          VideoPreviewWidget(
+            video: video,
+            id: bodyItem.id,
+          ),
           LayoutBuilder(
             builder: (_, layout) {
               return Container(
@@ -651,7 +719,10 @@ class MessageBodyWidget extends StatelessWidget {
       var video = bodyItem.video;
       return Container(
         margin: EdgeInsets.only(top: AppDimensions.smallPadding),
-        child: VideoPreviewWidget(video: video),
+        child: VideoPreviewWidget(
+          video: video,
+          id: bodyItem.id,
+        ),
       );
     } else if (bodyItem.pictures.isNotEmpty) {
       /// 图片
@@ -751,32 +822,39 @@ class MessageBodyWidget extends StatelessWidget {
 }
 
 class VideoPreviewWidget extends StatelessWidget {
-  const VideoPreviewWidget({
-    Key key,
-    @required this.video,
-  }) : super(key: key);
+  const VideoPreviewWidget({Key key, @required this.video, @required this.id})
+      : super(key: key);
 
   final Video video;
+  final String id;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      return SizedBox(
-        width: constraints.maxWidth,
-        height: constraints.maxWidth.toDouble() / 2,
-        child: Stack(
-          children: <Widget>[
-            AppNetWorkImage(
-              src: '${video.image.thumbnailUrl}.jpg',
-              fit: BoxFit.fitWidth,
-              width: constraints.maxWidth,
-              alignment: Alignment.centerLeft,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            Align(
-              child: Image.asset("images/ic_mediaplayer_videoplayer_play.png"),
-            )
-          ],
+      return GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+            return VideoPlayerPage(id: id);
+          }));
+        },
+        child: SizedBox(
+          width: constraints.maxWidth,
+          height: constraints.maxWidth.toDouble() / 2,
+          child: Stack(
+            children: <Widget>[
+              AppNetWorkImage(
+                src: '${video.image.thumbnailUrl}.jpg',
+                fit: BoxFit.fitWidth,
+                width: constraints.maxWidth,
+                alignment: Alignment.centerLeft,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              Align(
+                child:
+                    Image.asset("images/ic_mediaplayer_videoplayer_play.png"),
+              )
+            ],
+          ),
         ),
       );
     });

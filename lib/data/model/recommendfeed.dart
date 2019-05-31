@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:today/data/model/message.dart';
+import 'package:today/data/model/picture.dart';
 
 part 'recommendfeed.g.dart';
 
@@ -34,12 +35,63 @@ class RecommendItem {
   @JsonKey(defaultValue: '')
   final String text;
 
-  RecommendItem(this.items, this.type, this.id, this.item, this.dislikeMenu,
-      this.action, this.text);
+  /// TIP_CARD
+  @JsonKey(defaultValue: '')
+  final String viewType;
+  @JsonKey(defaultValue: '')
+  final String title;
+  @JsonKey(defaultValue: '')
+  final String content;
+  final Picture picture;
+  final Flags flags;
+  final Button button;
+
+  RecommendItem(
+      this.items,
+      this.type,
+      this.id,
+      this.item,
+      this.dislikeMenu,
+      this.action,
+      this.text,
+      this.viewType,
+      this.title,
+      this.content,
+      this.picture,
+      this.flags,
+      this.button);
 
   factory RecommendItem.fromJson(Map json) => _$RecommendItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$RecommendItemToJson(this);
+}
+
+@JsonSerializable()
+class Flags {
+  @JsonKey(defaultValue: false)
+  final bool hideDismissIcon;
+  @JsonKey(defaultValue: false)
+  final bool toggleFullscreen;
+
+  Flags(this.hideDismissIcon, this.toggleFullscreen);
+
+  factory Flags.fromJson(Map json) => _$FlagsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FlagsToJson(this);
+}
+
+@JsonSerializable()
+class Button {
+  @JsonKey(defaultValue: '')
+  final String text;
+  @JsonKey(defaultValue: '')
+  final String linkUrl;
+
+  Button(this.text, this.linkUrl);
+
+  factory Button.fromJson(Map json) => _$ButtonFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ButtonToJson(this);
 }
 
 @JsonSerializable()

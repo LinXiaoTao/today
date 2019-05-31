@@ -175,7 +175,7 @@ class _HomeBodyState extends State<_HomeBody>
                             child: _SearchWidget(model.searchPlaceholder, 55)),
                       ),
                       SliverToBoxAdapter(
-                        child: new _ShortcutsWidget(model.shortcutsData),
+                        child: _ShortcutsWidget(model.shortcutsData),
                       ),
                       SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {

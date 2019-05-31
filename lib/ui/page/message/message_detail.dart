@@ -52,7 +52,7 @@ class _MessageDetailState extends State<MessageDetailPage>
           UserInfo user = message.user;
 
           return NormalPage(
-            needAppBar: false,
+            title: NormalTitle('动态详情'),
             body: EasyRefresh(
                 refreshHeader: PhoenixHeader(
                   key: _refreshHeaderKey,
@@ -72,10 +72,6 @@ class _MessageDetailState extends State<MessageDetailPage>
                 firstRefresh: false,
                 child: CustomScrollView(
                   slivers: <Widget>[
-                    SliverAppBar(
-                      title: NormalTitle('消息详情'),
-                      pinned: true,
-                    ),
                     SliverToBoxAdapter(
                       child: Container(
                         color: Colors.white,
@@ -467,7 +463,12 @@ class __CommentListWidgetState extends State<_CommentListWidget>
                 }
 
                 /// 热门评论
-                return CommentListWidget('热门评论', model.commentList.hotComments);
+                return Padding(
+                  padding:
+                      EdgeInsets.only(bottom: AppDimensions.primaryPadding),
+                  child:
+                      CommentListWidget('热门评论', model.commentList.hotComments),
+                );
               }),
               CommentListWidget('最新评论', model.commentData),
             ],

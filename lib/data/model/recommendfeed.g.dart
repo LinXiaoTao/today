@@ -37,7 +37,13 @@ RecommendItem _$RecommendItemFromJson(Map json) {
           ? null
           : DislikeMenu.fromJson(json['dislikeMenu'] as Map),
       json['action'] as String ?? '',
-      json['text'] as String ?? '');
+      json['text'] as String ?? '',
+      json['viewType'] as String ?? '',
+      json['title'] as String ?? '',
+      json['content'] as String ?? '',
+      json['picture'] == null ? null : Picture.fromJson(json['picture'] as Map),
+      json['flags'] == null ? null : Flags.fromJson(json['flags'] as Map),
+      json['button'] == null ? null : Button.fromJson(json['button'] as Map));
 }
 
 Map<String, dynamic> _$RecommendItemToJson(RecommendItem instance) =>
@@ -48,8 +54,31 @@ Map<String, dynamic> _$RecommendItemToJson(RecommendItem instance) =>
       'item': instance.item,
       'dislikeMenu': instance.dislikeMenu,
       'action': instance.action,
-      'text': instance.text
+      'text': instance.text,
+      'viewType': instance.viewType,
+      'title': instance.title,
+      'content': instance.content,
+      'picture': instance.picture,
+      'flags': instance.flags,
+      'button': instance.button
     };
+
+Flags _$FlagsFromJson(Map json) {
+  return Flags(json['hideDismissIcon'] as bool ?? false,
+      json['toggleFullscreen'] as bool ?? false);
+}
+
+Map<String, dynamic> _$FlagsToJson(Flags instance) => <String, dynamic>{
+      'hideDismissIcon': instance.hideDismissIcon,
+      'toggleFullscreen': instance.toggleFullscreen
+    };
+
+Button _$ButtonFromJson(Map json) {
+  return Button(json['text'] as String ?? '', json['linkUrl'] as String ?? '');
+}
+
+Map<String, dynamic> _$ButtonToJson(Button instance) =>
+    <String, dynamic>{'text': instance.text, 'linkUrl': instance.linkUrl};
 
 LoadMoreKey _$LoadMoreKeyFromJson(Map json) {
   return LoadMoreKey(

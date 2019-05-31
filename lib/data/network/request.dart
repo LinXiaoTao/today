@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:today/platform/app.dart';
 import 'package:today/data/storage/simple_storage.dart';
 import 'package:today/data/network/interceptors.dart';
 import 'package:today/data/constants.dart';
@@ -11,8 +10,6 @@ import 'package:flutter/widgets.dart';
 import 'package:today/data/model/init.dart';
 export 'package:today/data/model/init.dart';
 import 'package:today/data/state/login.dart';
-import 'package:today/util/global.dart';
-import 'package:today/data/event/events.dart';
 import 'dart:async';
 
 class ApiRequest {
@@ -22,20 +19,20 @@ class ApiRequest {
 
   ApiRequest._();
 
-  static String _androidId;
+  static String _saDeviceId;
 
   /// 注册
   static Future<UserInfo> register() async {
     /// 游客登录，用户名和密码是随机生成的
 
     return _dio.post("/1.0/users/register", data: {
-      "saDeviceId": _androidId,
+      "saDeviceId": _saDeviceId,
       "username": Uuid().v4(),
       "password": _generaPassword()
     }).then((value) {
       Map<String, dynamic> data = value.data;
       if (data["success"]) {
-        SimpleStorage.putString(key_android_id, _androidId);
+        SimpleStorage.putString(key_saDevice_id, _saDeviceId);
         return UserInfo.fromJson(data["user"]);
       }
       throw "register request fail";
@@ -52,7 +49,7 @@ class ApiRequest {
   /// 保存设备信息
   static Future<bool> saveDeviceInfo() async {
     return _dio.post("/1.0/users/saveDeviceInfo", data: {
-      "instanceid": _androidId,
+      "instanceid": _saDeviceId,
       "imei": "",
       "guid": LoginState.deviceId
     }).then((value) {
@@ -181,21 +178,27 @@ class ApiRequest {
     });
   }
 
+  static Future<Map> mediaMeta(Map<String, dynamic> query) {
+    return _dio
+        .post('/1.0/mediaMeta/interactive', queryParameters: query)
+        .then((value) {
+      return value.data;
+    });
+  }
+
   static initDio() async {
     if (_init) return;
-
     String deviceId = await SimpleStorage.getString(key_device_id);
-    DeviceInfo deviceInfo = await AppPlatform.getDeviceInfo();
 
     /// 跟设备有一定关系
-    _androidId = await SimpleStorage.getString(key_android_id);
+    _saDeviceId = await SimpleStorage.getString(key_saDevice_id);
     if (deviceId.isEmpty) {
       /// deviceId 也是随机生成的
-      deviceId = deviceInfo.deviceId;
+      deviceId = _generaDeviceId();
       SimpleStorage.putString(key_device_id, deviceId);
     }
-    if (_androidId.isEmpty) {
-      _androidId = deviceInfo.androidId;
+    if (_saDeviceId.isEmpty) {
+      _saDeviceId = _generaDeviceId();
     }
     _dio = Dio(BaseOptions(baseUrl: "https://app.jike.ruguoapp.com", headers: {
       "user-agent": "okhttp/3.13.1",
@@ -203,7 +206,7 @@ class ApiRequest {
       "notification-status": "ON",
       "app-version": "5.8.1",
       "app-buildno": "828",
-      "os-version": deviceInfo.osVersion,
+      "os-version": 26,
       "Content-Type": "application/json",
       key_device_id: deviceId
     }));
@@ -239,5 +242,10 @@ class ApiRequest {
     }
     debugPrint("genera password: $password");
     return password;
+  }
+
+  /// 生成 deviceId
+  static _generaDeviceId() {
+    return Uuid().v4();
   }
 }
