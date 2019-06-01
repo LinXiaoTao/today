@@ -36,6 +36,13 @@ dependencies:
   cached_network_image: ^0.8.0
   rxdart: ^0.22.0
   video_player: ^0.10.1+2
+  flutter_bloc: ^0.15.0
+  equatable: ^0.2.5
+  connectivity: ^0.4.3+2
+  url_launcher: ^5.0.2
+  image_picker: ^0.6.0+8
+  webview_flutter: ^0.3.7+1
+  path_provider: ^0.5.0+1
 
 dev_dependencies:
   flutter_test:

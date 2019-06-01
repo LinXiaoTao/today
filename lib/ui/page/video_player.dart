@@ -50,10 +50,15 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
             color: Colors.white54,
           );
         }
-        return Center(
-          child: AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: VideoPlayer(_controller),
+        return GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: VideoPlayer(_controller),
+            ),
           ),
         );
       }),

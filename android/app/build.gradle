@@ -53,6 +53,10 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    configurations.all {
+        resolutionStrategy.force 'androidx.core:core:1.0.2'
+    }
 }
 
 flutter {

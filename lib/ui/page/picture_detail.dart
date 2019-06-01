@@ -39,32 +39,37 @@ class _PictureDetailPageState extends State<PictureDetailPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: <Widget>[
-          PhotoViewGallery.builder(
-            scrollPhysics: const BouncingScrollPhysics(),
-            itemCount: widget.pictures.length,
-            builder: (context, index) {
-              Picture picture = widget.pictures[index];
-              return PhotoViewGalleryPageOptions(
-                imageProvider: CachedNetworkImageProvider(picture.picUrl,
-                    headers: {
-                      key_access_token: LoginState.accessToken,
-                      key_device_id: LoginState.deviceId
-                    }),
-                heroTag: picture,
-                minScale: PhotoViewComputedScale.contained,
-                initialScale: PhotoViewComputedScale.contained,
-                maxScale: 2.0,
-              );
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
             },
-            loadingChild: SpinKitFadingCircle(
-              color: Colors.white,
+            child: PhotoViewGallery.builder(
+              scrollPhysics: const BouncingScrollPhysics(),
+              itemCount: widget.pictures.length,
+              builder: (context, index) {
+                Picture picture = widget.pictures[index];
+                return PhotoViewGalleryPageOptions(
+                  imageProvider: CachedNetworkImageProvider(picture.picUrl,
+                      headers: {
+                        key_access_token: LoginState.accessToken,
+                        key_device_id: LoginState.deviceId
+                      }),
+                  heroTag: picture,
+                  minScale: PhotoViewComputedScale.contained,
+                  initialScale: PhotoViewComputedScale.contained,
+                  maxScale: 2.0,
+                );
+              },
+              loadingChild: SpinKitFadingCircle(
+                color: Colors.white,
+              ),
+              pageController: _pageController,
+              backgroundDecoration: BoxDecoration(color: Colors.black),
+              onPageChanged: (index) {
+                if (widget.pictures.length == 1) return;
+                _indexStreamController.sink.add(index);
+              },
             ),
-            pageController: _pageController,
-            backgroundDecoration: BoxDecoration(color: Colors.black),
-            onPageChanged: (index) {
-              if (widget.pictures.length == 1) return;
-              _indexStreamController.sink.add(index);
-            },
           ),
           Builder(builder: (context) {
             if (widget.pictures.length == 1) {
