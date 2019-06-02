@@ -2,9 +2,7 @@ import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:intl/intl.dart';
 import 'package:today/ui/ui_base.dart';
-import 'package:today/data/repository/message_model.dart';
 import 'package:today/ui/message.dart';
-import 'package:today/data/repository/comment_model.dart';
 
 final DateFormat _dateFormat = DateFormat('MM/dd HH:mm');
 
@@ -24,33 +22,29 @@ class MessageDetailPage extends StatefulWidget {
 
 class _MessageDetailState extends State<MessageDetailPage>
     with AfterLayoutMixin<MessageDetailPage> {
-  final MessageModel _messageModel = MessageModel();
+  final MessageDetailBloc _detailBloc = MessageDetailBloc();
+  final MessageRelatedBloc _relatedBloc = MessageRelatedBloc();
+  final CommentListBloc _commentListBloc = CommentListBloc();
+
   final GlobalKey<PhoenixHeaderState> _refreshHeaderKey = GlobalKey();
   final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
   final GlobalKey<__CommentListWidgetState> _commentListKey = GlobalKey();
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _messageModel.requestMessageDetail(widget.id,
-        ref: widget.ref, pageName: widget.pageName);
+    _detailBloc.dispatch(FetchMessageDetailEvent(widget.id, ref: widget.ref));
+    _relatedBloc.dispatch(
+        FetchMessageRelatedListEvent(widget.id, pageName: widget.pageName));
   }
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModel<MessageModel>(
-      model: _messageModel,
-      child: ScopedModelDescendant<MessageModel>(
-        builder: (BuildContext context, Widget child, MessageModel model) {
-          if (model.message == null) {
-            return NormalPage(
-              body: PageLoadingWidget(),
-              title: NormalTitle('动态详情'),
-            );
-          }
-
-          Message message = model.message;
+    return BlocBuilder(
+      bloc: _detailBloc,
+      builder: (_, MessageDetailState state) {
+        if (state is LoadedMessageDetailState) {
+          Message message = state.message;
           UserInfo user = message.user;
-
           return NormalPage(
             title: NormalTitle('动态详情'),
             body: EasyRefresh(
@@ -62,8 +56,12 @@ class _MessageDetailState extends State<MessageDetailPage>
                   backgroundColor: Colors.transparent,
                   color: AppColors.accentColor,
                 ),
+                autoLoad: true,
                 onRefresh: () {
-                  afterFirstLayout(context);
+                  _detailBloc.dispatch(
+                      FetchMessageDetailEvent(widget.id, ref: widget.ref));
+                  _relatedBloc.dispatch(FetchMessageRelatedListEvent(widget.id,
+                      pageName: widget.pageName));
                   _commentListKey.currentState.refreshData();
                 },
                 loadMore: () {
@@ -88,63 +86,67 @@ class _MessageDetailState extends State<MessageDetailPage>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                AppNetWorkImage(
-                                  src: user.avatarImage.thumbnailUrl,
-                                  width: 40,
-                                  height: 40,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
+                                AvatarWidget(user),
                                 SizedBox(
                                   width: AppDimensions.primaryPadding,
                                 ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    ScreenNameWidget(user: user),
-                                    SizedBox(
-                                      height: AppDimensions.smallPadding,
-                                    ),
-                                    Row(
-                                      children: <Widget>[
-                                        Text(
-                                          _dateFormat.format(
-                                              DateTime.parse(message.createdAt)
-                                                  .toLocal()),
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.tipsTextColor),
-                                        ),
-                                        Builder(builder: (_) {
-                                          if (message.poi == null)
-                                            return SizedBox();
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      ScreenNameWidget(user: user),
+                                      SizedBox(
+                                        height: AppDimensions.smallPadding,
+                                      ),
+                                      Row(
+                                        children: <Widget>[
+                                          Text(
+                                            _dateFormat.format(DateTime.parse(
+                                                    message.createdAt)
+                                                .toLocal()),
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.tipsTextColor),
+                                          ),
+                                          Builder(builder: (_) {
+                                            if (message.poi == null)
+                                              return SizedBox();
 
-                                          return Row(
-                                            children: <Widget>[
-                                              SizedBox(
-                                                width:
-                                                    AppDimensions.smallPadding,
+                                            return Expanded(
+                                              child: Row(
+                                                children: <Widget>[
+                                                  SizedBox(
+                                                    width: AppDimensions
+                                                        .smallPadding,
+                                                  ),
+                                                  Image.asset(
+                                                      'images/ic_personaltab_activity_add_location.png'),
+                                                  SizedBox(
+                                                    width: AppDimensions
+                                                        .smallPadding,
+                                                  ),
+                                                  Expanded(
+                                                    child: Text(
+                                                      message.poi.name,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: AppColors
+                                                              .tipsTextColor),
+                                                    ),
+                                                  )
+                                                ],
                                               ),
-                                              Image.asset(
-                                                  'images/ic_personaltab_activity_add_location.png'),
-                                              SizedBox(
-                                                width:
-                                                    AppDimensions.smallPadding,
-                                              ),
-                                              Text(
-                                                message.poi.name,
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: AppColors
-                                                        .tipsTextColor),
-                                              )
-                                            ],
-                                          );
-                                        }),
-                                      ],
-                                    )
-                                  ],
+                                            );
+                                          }),
+                                        ],
+                                      )
+                                    ],
+                                  ),
                                 ),
-                                Spacer(),
                                 Container(
                                   decoration: BoxDecoration(
                                       color: AppColors.blue,
@@ -200,18 +202,31 @@ class _MessageDetailState extends State<MessageDetailPage>
                       ),
                     ),
                     SliverToBoxAdapter(
-                      child: _RelatedWidget(
-                        listRelated: model.listRelated,
-                      ),
+                      child: BlocBuilder(
+                          bloc: _relatedBloc,
+                          builder: (_, MessageRelatedState state) {
+                            if (state is LoadedMessageRelatedListState) {
+                              return _RelatedWidget(
+                                listRelated: state.messageList,
+                              );
+                            }
+                            return SizedBox();
+                          }),
                     ),
                     SliverToBoxAdapter(
-                      child: _CommentListWidget(message, _commentListKey),
+                      child: _CommentListWidget(
+                          message, _commentListBloc, _commentListKey),
                     )
                   ],
                 )),
           );
-        },
-      ),
+        }
+
+        return NormalPage(
+          body: PageLoadingWidget(),
+          title: NormalTitle('动态详情'),
+        );
+      },
     );
   }
 
@@ -435,8 +450,9 @@ class _RelatedWidget extends StatelessWidget {
 /// 评论列表
 class _CommentListWidget extends StatefulWidget {
   final Message message;
+  final CommentListBloc bloc;
 
-  _CommentListWidget(this.message, Key key) : super(key: key);
+  _CommentListWidget(this.message, this.bloc, Key key) : super(key: key);
 
   @override
   __CommentListWidgetState createState() => __CommentListWidgetState();
@@ -444,21 +460,16 @@ class _CommentListWidget extends StatefulWidget {
 
 class __CommentListWidgetState extends State<_CommentListWidget>
     with AfterLayoutMixin<_CommentListWidget> {
-  final CommentModel _model = CommentModel();
-
   @override
   Widget build(BuildContext context) {
-    return ScopedModel<CommentModel>(
-        model: _model,
-        child: ScopedModelDescendant<CommentModel>(builder: (_, child, model) {
-          if (model.commentList == null) {
-            return PageLoadingWidget();
-          }
-
+    return BlocBuilder(
+      bloc: widget.bloc,
+      builder: (_, CommentListState state) {
+        if (state is LoadedCommentListState) {
           return Column(
             children: <Widget>[
               Builder(builder: (_) {
-                if (model.commentList.hotComments.isEmpty) {
+                if (state.hotCommentList.isEmpty) {
                   return SizedBox();
                 }
 
@@ -466,19 +477,22 @@ class __CommentListWidgetState extends State<_CommentListWidget>
                 return Padding(
                   padding:
                       EdgeInsets.only(bottom: AppDimensions.primaryPadding),
-                  child:
-                      CommentListWidget('热门评论', model.commentList.hotComments),
+                  child: CommentListWidget('热门评论', state.hotCommentList),
                 );
               }),
-              CommentListWidget('最新评论', model.commentData),
+              CommentListWidget('最新评论', state.commentList),
             ],
           );
-        }));
+        }
+
+        return PageLoadingWidget();
+      },
+    );
   }
 
   refreshData({bool loadMore = false}) {
-    _model.requestCommentList(widget.message.id, widget.message.type,
-        loadMore: loadMore);
+    widget.bloc.dispatch(FetchCommentListEvent(widget.message.id,
+        targetType: widget.message.type, loadMore: loadMore));
   }
 
   @override

@@ -7,8 +7,8 @@ import 'package:today/data/constants.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math';
 import 'package:flutter/widgets.dart';
-import 'package:today/data/model/init.dart';
-export 'package:today/data/model/init.dart';
+import 'package:today/data/model/models.dart';
+export 'package:today/data/model/models.dart';
 import 'package:today/data/state/login.dart';
 import 'dart:async';
 
@@ -217,7 +217,7 @@ class ApiRequest {
 //      (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
 //          (client) {
 //        client.findProxy = (url) {
-//          return "PROXY 172.21.12.127:8888";
+//          return "PROXY 192.168.2.104:8888";
 //        };
 //        //抓Https包设置
 //        client.badCertificateCallback =
@@ -229,6 +229,16 @@ class ApiRequest {
     _dio.interceptors.add(BusinessInterceptor());
     _init = true;
     debugPrint("init success");
+
+    /// 刷新 token
+    bool value = await refreshToken();
+    debugPrint("启动刷新 token: $value");
+    if (value) {
+      /// 刷新缓存
+      await LoginState.init();
+    }
+
+    _scheduleRefreshTokenTask();
   }
 
   /// 生成随机密码
@@ -247,5 +257,18 @@ class ApiRequest {
   /// 生成 deviceId
   static _generaDeviceId() {
     return Uuid().v4();
+  }
+
+  /// 定时刷新 token
+  static _scheduleRefreshTokenTask() {
+    Timer.periodic(Duration(minutes: 10), (timer) async {
+      /// 刷新 token
+      bool value = await refreshToken();
+      debugPrint("定时刷新 token: $value");
+      if (value) {
+        /// 刷新缓存
+        await LoginState.init();
+      }
+    });
   }
 }

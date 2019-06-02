@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:today/data/model/message.dart';
-import 'package:today/data/model/picture.dart';
+import 'package:today/data/model/models.dart';
+import 'package:equatable/equatable.dart';
 
 part 'recommendfeed.g.dart';
 
@@ -20,10 +20,11 @@ class RecommendFeed {
 }
 
 @JsonSerializable()
-class RecommendItem {
+class RecommendItem extends Equatable {
   final List<RecommendHeadItem> items;
 
   /// RECOMMENDED_MESSAGE || HEADLINE_RECOMMENDATION
+  @JsonKey(defaultValue: '')
   final String type;
   final String id;
   final Message item;
@@ -59,7 +60,8 @@ class RecommendItem {
       this.content,
       this.picture,
       this.flags,
-      this.button);
+      this.button)
+      : super([id]);
 
   factory RecommendItem.fromJson(Map json) => _$RecommendItemFromJson(json);
 

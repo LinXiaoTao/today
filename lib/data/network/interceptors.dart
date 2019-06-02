@@ -57,11 +57,10 @@ class BusinessInterceptor implements Interceptor {
         _refreshToken = true;
         ApiRequest.refreshToken().then((value) async {
           _refreshToken = false;
-          debugPrint("刷新 token: $value");
+          debugPrint("失效刷新 token: $value");
           if (value) {
             /// 刷新缓存
             await LoginState.init();
-            Global.eventBus.fire(RefreshTokenEvent());
           }
         }).catchError((value) {
           _refreshToken = false;

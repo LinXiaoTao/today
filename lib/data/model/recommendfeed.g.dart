@@ -30,7 +30,7 @@ RecommendItem _$RecommendItemFromJson(Map json) {
       (json['items'] as List)
           ?.map((e) => e == null ? null : RecommendHeadItem.fromJson(e as Map))
           ?.toList(),
-      json['type'] as String,
+      json['type'] as String ?? '',
       json['id'] as String,
       json['item'] == null ? null : Message.fromJson(json['item'] as Map),
       json['dislikeMenu'] == null

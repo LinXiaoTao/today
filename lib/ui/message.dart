@@ -6,6 +6,7 @@ import 'package:today/ui/page/picture_detail.dart';
 import 'package:today/ui/page/message/message_detail.dart';
 import 'package:today/widget/real_rich_text.dart';
 import 'package:today/ui/page/video_player.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final intl.DateFormat _dateFormat = intl.DateFormat('MM/dd HH:mm');
 
@@ -24,7 +25,8 @@ class MessageItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Global.eventBus.fire(RefreshHomeEvent());
+            BlocProvider.of<RecommendBloc>(context)
+                .dispatch(FetchRecommendEvent());
           },
           child: Padding(
             padding:
@@ -226,11 +228,9 @@ class MessageItem extends StatelessWidget {
 
                           return Row(
                             children: <Widget>[
-                              AppNetWorkImage(
-                                src: user.avatarImage.thumbnailUrl,
-                                width: 26,
-                                height: 26,
-                                borderRadius: BorderRadius.circular(13),
+                              AvatarWidget(
+                                user,
+                                size: 26,
                               ),
                               SizedBox(
                                 width: AppDimensions.smallPadding,
@@ -413,10 +413,10 @@ class LinkInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _createLinkInfoWidget(bodyItem);
+    return _createLinkInfoWidget(bodyItem, context);
   }
 
-  Widget _createLinkInfoWidget(Message bodyItem) {
+  Widget _createLinkInfoWidget(Message bodyItem, BuildContext context) {
     LinkInfo linkInfo = bodyItem.linkInfo;
     if (linkInfo == null) return SizedBox();
 
@@ -505,29 +505,38 @@ class LinkInfoWidget extends StatelessWidget {
       );
     } else {
       /// 分享链接
-      return Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(2), color: AppColors.darkGrey),
-        height: 60,
-        child: Row(
-          children: <Widget>[
-            AppNetWorkImage(
-              src: linkInfo.pictureUrl,
-              width: 60,
-              height: 60,
-            ),
-            SizedBox(
-              width: AppDimensions.primaryPadding,
-            ),
-            Expanded(
-              child: Text(
-                linkInfo.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: AppColors.primaryTextColor),
+      return GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+            return WebViewPage(linkInfo.linkUrl, linkInfo.title);
+          }));
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              color: AppColors.darkGrey),
+          height: 60,
+          child: Row(
+            children: <Widget>[
+              AppNetWorkImage(
+                src: linkInfo.pictureUrl,
+                width: 60,
+                height: 60,
               ),
-            )
-          ],
+              SizedBox(
+                width: AppDimensions.primaryPadding,
+              ),
+              Expanded(
+                child: Text(
+                  linkInfo.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: AppColors.primaryTextColor),
+                ),
+              )
+            ],
+          ),
         ),
       );
     }
@@ -1042,12 +1051,7 @@ class CommentItemWidget extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          AppNetWorkImage(
-            src: comment.user.avatarImage.thumbnailUrl,
-            width: 40,
-            height: 40,
-            borderRadius: BorderRadius.circular(20),
-          ),
+          AvatarWidget(comment.user),
           SizedBox(
             width: AppDimensions.primaryPadding,
           ),
@@ -1094,10 +1098,32 @@ class CommentItemWidget extends StatelessWidget {
                         SizedBox(
                           height: AppDimensions.smallPadding,
                         ),
-                        Text(
-                          comment.content,
-                          style: TextStyle(
-                              color: AppColors.primaryTextColor, fontSize: 13),
+                        Builder(
+                          builder: (_) {
+                            if (comment.level <= 2) {
+                              return Text(
+                                comment.content,
+                                style: TextStyle(
+                                    color: AppColors.primaryTextColor,
+                                    fontSize: 13),
+                              );
+                            } else {
+                              /// 多级回复
+
+                              List<TextSpan> child = [];
+                              child.add(TextSpan(text: '回复'));
+                              child.add(TextSpan(
+                                  text:
+                                      ' ${comment.replyToComment.user.screenName}',
+                                  style: TextStyle(color: AppColors.blue)));
+                              child.add(TextSpan(text: '：${comment.content}'));
+                              return Text.rich(TextSpan(
+                                  children: child,
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.primaryTextColor)));
+                            }
+                          },
                         ),
                       ],
                     );
@@ -1227,6 +1253,44 @@ class CommentItemWidget extends StatelessWidget {
               ],
             ),
           )
+        ],
+      ),
+    );
+  }
+}
+
+class AvatarWidget extends StatelessWidget {
+  final UserInfo user;
+  final double size;
+
+  AvatarWidget(this.user, {this.size = 40});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        children: <Widget>[
+          AppNetWorkImage(
+            src: user.avatarImage.thumbnailUrl,
+            width: size,
+            height: size,
+            borderRadius: BorderRadius.circular(size / 2),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Builder(builder: (_) {
+              if (user.isVerified) {
+                return Image.asset(
+                  'images/ic_common_verified.png',
+                  width: size / 2.5,
+                  height: size / 2.5,
+                );
+              }
+              return SizedBox();
+            }),
+          ),
         ],
       ),
     );

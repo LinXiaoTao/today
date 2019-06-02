@@ -18,6 +18,9 @@ export 'package:scoped_model/scoped_model.dart';
 export 'package:fluttertoast/fluttertoast.dart';
 export 'package:flutter_spinkit/flutter_spinkit.dart';
 export 'package:flutter_easyrefresh/phoenix_header.dart';
+export 'package:today/bloc/blocs.dart';
+export 'package:flutter_bloc/flutter_bloc.dart';
+export 'package:today/ui/page/pages.dart';
 
 class NormalPage extends StatefulWidget {
   final Widget title;

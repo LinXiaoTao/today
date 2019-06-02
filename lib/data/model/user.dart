@@ -11,7 +11,14 @@ class UserInfo {
 
   final String createdAt;
 
+  @JsonKey(defaultValue: false)
   final bool isVerified;
+
+  @JsonKey(defaultValue: '')
+  final String verifyMessage;
+
+  @JsonKey(defaultValue: '')
+  final String profileImageUrl;
 
   final UserAvatar avatarImage;
 
@@ -57,6 +64,8 @@ class UserInfo {
       this.screenName,
       this.createdAt,
       this.isVerified,
+      this.verifyMessage,
+      this.profileImageUrl,
       this.avatarImage,
       this.trailingIcons,
       this.statsCount,

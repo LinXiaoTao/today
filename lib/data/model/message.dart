@@ -1,15 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:today/data/model/topic.dart';
-import 'package:today/data/model/poi.dart';
-import 'package:today/data/model/user.dart';
-import 'package:today/data/model/video.dart';
-import 'package:today/data/model/comment.dart';
-import 'package:today/data/model/picture.dart';
+import 'package:today/data/model/models.dart';
+import 'package:equatable/equatable.dart';
 
 part 'message.g.dart';
 
 @JsonSerializable()
-class Message {
+class Message extends Equatable {
   final String id;
 
   ///ORIGINAL_POST
@@ -83,7 +79,7 @@ class Message {
     this.topComment,
     this.attachedComments,
     this.viewType,
-  );
+  ) : super([id]);
 
   factory Message.fromJson(Map json) => _$MessageFromJson(json);
 

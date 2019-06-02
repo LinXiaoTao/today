@@ -5,41 +5,18 @@ import 'package:today/ui/page/debug.dart';
 import 'package:today/ui/message.dart';
 import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
-import 'package:today/data/repository/recommend_model.dart';
-import 'package:today/ui/page/message/message_detail.dart';
 
-class HomePage extends StatelessWidget {
-  final RecommendModel _model = RecommendModel();
-
-  final Function(bool) canRefresh;
-
-  HomePage(this.canRefresh);
-
-  @override
-  Widget build(BuildContext context) {
-    return ScopedModel(
-      child: _HomeBody(canRefresh),
-      model: _model,
-    );
-  }
-}
-
-class _HomeBody extends StatefulWidget {
-  final Function(bool) canRefreshStream;
-
-  _HomeBody(this.canRefreshStream);
-
+class HomePage extends StatefulWidget {
   @override
   _HomeBodyState createState() => _HomeBodyState();
 }
 
-class _HomeBodyState extends State<_HomeBody>
-    with AfterLayoutMixin<_HomeBody>, WidgetsBindingObserver {
-  StreamSubscription _tokenSubscription;
-  StreamSubscription _homeSubscription;
+class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
+  final SearchPlaceholderBloc _searchPlaceholderBloc = SearchPlaceholderBloc();
+  final ShortcutBloc _shortcutBloc = ShortcutBloc();
+  RecommendBloc _recommendBloc;
 
-  Function _showToastFun;
-  RecommendModel _model;
+  StreamSubscription _homeSubscription;
 
   ScrollController _scrollController = ScrollController();
 
@@ -52,162 +29,144 @@ class _HomeBodyState extends State<_HomeBody>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _tokenSubscription =
-        Global.eventBus.on<RefreshTokenEvent>().listen((event) {
-      afterFirstLayout(context);
-    });
-    _homeSubscription = Global.eventBus.on<RefreshHomeEvent>().listen((event) {
-      _scrollController.jumpTo(0);
-      _refreshKey.currentState.callRefresh();
-    });
   }
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _model = RecommendModel.of(context);
-    _model.requestRecommendData();
-    _showToastFun = () {
-      if (_model.recommendFee == null ||
-          _model.recommendFee.toastMessage.isEmpty) {
-        return;
-      }
-
-      Future.delayed(Duration(milliseconds: 300), () {
-        Fluttertoast.showToast(
-            msg: _model.recommendFee.toastMessage,
-            toastLength: Toast.LENGTH_LONG,
-            backgroundColor: AppColors.accentColor,
-            textColor: AppColors.primaryTextColor,
-            gravity: ToastGravity.TOP,
-            fontSize: 14);
-      });
-    };
-    _model.addListener(_showToastFun);
+    _recommendBloc.dispatch(FetchRecommendEvent());
+    _shortcutBloc.dispatch(FetchShortcutEvent());
+    _searchPlaceholderBloc.dispatch(FetchSearchPlaceHolderEvent());
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _tokenSubscription?.cancel();
-    _model.removeListener(_showToastFun);
     _scrollController.dispose();
     _homeSubscription?.cancel();
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint("lifecycleState = $state");
+  void didChangeDependencies() {
+    _recommendBloc = BlocProvider.of(context);
+    _recommendBloc.event.listen((event) {
+      if (event is FetchRecommendEvent) {
+        if (!event.loadMore) {
+          _scrollController.animateTo(0,
+              curve: Curves.fastLinearToSlowEaseIn,
+              duration: Duration(milliseconds: 300));
+        }
+      }
+    });
+    super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<RecommendModel>(
-      builder: (context, _, model) {
-        if (model.recommendFee == null) {
-          return Column(
-            children: <Widget>[
-              Container(
-                color: AppColors.accentColor,
-                height: MediaQuery.of(context).padding.top,
-              ),
-              _SearchWidget(
-                  SearchPlaceholder(
-                    '',
-                    '',
-                    '',
-                    '',
-                  ),
-                  55),
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: EdgeInsets.only(top: 20),
-                  child: SpinKitThreeBounce(
-                    size: 20,
-                    color: Colors.grey,
-                    duration: Duration(milliseconds: 1000),
-                  ),
+    return BlocProviderTree(
+      blocProviders: [
+        BlocProvider<SearchPlaceholderBloc>(
+          bloc: _searchPlaceholderBloc,
+        ),
+        BlocProvider<ShortcutBloc>(
+          bloc: _shortcutBloc,
+        ),
+      ],
+      child: Column(
+        children: <Widget>[
+          Container(
+            color: Color(0xffffe411),
+            height: MediaQuery.of(context).padding.top,
+          ),
+          Expanded(
+            child: NotificationListener<ScrollUpdateNotification>(
+              onNotification: (notification) {
+                BlocProvider.of<NavigationBarBloc>(context).dispatch(
+                    SwitchHomeNavigationBarEvent(
+                        refreshMode: _scrollController.position.pixels > 2000));
+              },
+              child: EasyRefresh(
+                key: _refreshKey,
+                firstRefresh: false,
+                refreshHeader: PhoenixHeader(
+                  key: _refreshHeaderKey,
                 ),
-              ),
-            ],
-          );
-        }
-
-        return Column(
-          children: <Widget>[
-            Container(
-              color: Color(0xffffe411),
-              height: MediaQuery.of(context).padding.top,
-            ),
-            Expanded(
-              child: NotificationListener<ScrollUpdateNotification>(
-                onNotification: (notification) {
-                  widget.canRefreshStream(
-                      _scrollController.position.pixels > 2000);
+                refreshFooter: BallPulseFooter(
+                  key: _loadMoreFooterKey,
+                  backgroundColor: Colors.transparent,
+                  color: AppColors.accentColor,
+                ),
+                onRefresh: () {
+                  _recommendBloc.dispatch(FetchRecommendEvent());
                 },
-                child: EasyRefresh(
-                  key: _refreshKey,
-                  firstRefresh: false,
-                  refreshHeader: PhoenixHeader(
-                    key: _refreshHeaderKey,
-                  ),
-                  refreshFooter: BallPulseFooter(
-                    key: _loadMoreFooterKey,
-                    backgroundColor: Colors.transparent,
-                    color: AppColors.accentColor,
-                  ),
-                  onRefresh: () {
-                    model.requestRecommendData();
-                  },
-                  loadMore: () {
-                    model.requestRecommendData(loadMore: true);
-                  },
-                  autoLoad: true,
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    slivers: <Widget>[
-                      SliverPersistentHeader(
-                        floating: true,
-                        delegate: _SliverSearchDelegate(
-                            maxHeight: 55,
-                            child: _SearchWidget(model.searchPlaceholder, 55)),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _ShortcutsWidget(model.shortcutsData),
-                      ),
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          return MessageItem(
-                            model.recommendData[index],
-                            needMarginTop:
-                                (model.recommendData[max(0, index - 1)].type ==
-                                    'RECOMMENDED_MESSAGE'),
-                          );
-                        }, childCount: model.recommendData.length),
-                      )
-                    ],
-                  ),
+                loadMore: () {
+                  _recommendBloc.dispatch(FetchRecommendEvent(loadMore: true));
+                },
+                autoLoad: true,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: <Widget>[
+                    SliverPersistentHeader(
+                      floating: true,
+                      delegate: _SliverSearchDelegate(
+                          maxHeight: 55,
+                          child: _SearchWidget(55, _searchPlaceholderBloc)),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _ShortcutsWidget(_shortcutBloc),
+                    ),
+                    BlocListener(
+                      bloc: _recommendBloc,
+                      listener: (_, state) {
+                        if (state is LoadedRecommendState) {
+                          if (state.toastMsg.isEmpty) return;
+                          Fluttertoast.showToast(
+                              msg: state.toastMsg,
+                              toastLength: Toast.LENGTH_LONG,
+                              backgroundColor: AppColors.accentColor,
+                              textColor: AppColors.primaryTextColor,
+                              gravity: ToastGravity.TOP,
+                              fontSize: 14);
+                        }
+                      },
+                      child: BlocBuilder(
+                          bloc: _recommendBloc,
+                          builder: (_, RecommendState state) {
+                            if (state is LoadedRecommendState) {
+                              return SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                    (context, index) {
+                                  return MessageItem(
+                                    state.recommendList[index],
+                                    needMarginTop: (_recommendBloc
+                                            .recommendList[max(0, index - 1)]
+                                            .type ==
+                                        'RECOMMENDED_MESSAGE'),
+                                  );
+                                }, childCount: state.recommendList.length),
+                              );
+                            }
+
+                            return SliverToBoxAdapter(
+                              child: PageLoadingWidget(),
+                            );
+                          }),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _SearchWidget extends StatelessWidget {
-  final SearchPlaceholder searchPlaceholder;
   final double height;
+  final SearchPlaceholderBloc bloc;
 
-  const _SearchWidget(
-    this.searchPlaceholder,
-    this.height, {
-    Key key,
-  }) : super(key: key);
+  _SearchWidget(this.height, this.bloc);
 
   @override
   Widget build(BuildContext context) {
@@ -237,10 +196,17 @@ class _SearchWidget extends StatelessWidget {
                     SizedBox(
                       width: AppDimensions.primaryPadding,
                     ),
-                    Text(
-                      searchPlaceholder.homeTab,
-                      style: TextStyle(
-                          color: AppColors.tipsTextColor, fontSize: 16),
+                    BlocBuilder(
+                      bloc: bloc,
+                      builder: (_, SearchPlaceholderState state) {
+                        return Text(
+                          (state is LoadedSearchPlaceHolderState)
+                              ? state.searchPlaceholder.homeTab
+                              : '',
+                          style: TextStyle(
+                              color: AppColors.tipsTextColor, fontSize: 16),
+                        );
+                      },
                     )
                   ],
                 ),
@@ -264,122 +230,126 @@ class _SearchWidget extends StatelessWidget {
 }
 
 class _ShortcutsWidget extends StatelessWidget {
-  final ShortcutsData shortcutsData;
+  final ShortcutBloc bloc;
+  final double imageSize = 55;
 
-  _ShortcutsWidget(this.shortcutsData);
+  _ShortcutsWidget(this.bloc);
 
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        if (shortcutsData == null) return SizedBox();
+    return BlocBuilder(
+      bloc: bloc,
+      builder: (_, ShortcutState state) {
+        if (state is LoadedShortcutState) {
+          ShortcutsData shortcutsData = state.shortcutsData;
 
-        double imageSize = 55;
+          List<Widget> headWidgetList =
+              shortcutsData.shortcuts.map<Widget>((headItem) {
+            Widget contentWidget;
+            if (headItem.style == 'YELLOW') {
+              contentWidget = Container(
+                padding: EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.yellow, width: 3),
+                    borderRadius: BorderRadius.circular(10)),
+                child: AppNetWorkImage(
+                  src: headItem.picUrl,
+                  width: imageSize,
+                  height: imageSize,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              );
+            } else if (headItem.style == 'DOTTED') {
+              contentWidget = DottedBorder(
+                child: AppNetWorkImage(
+                  src: headItem.picUrl,
+                  width: imageSize,
+                  height: imageSize,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                color: AppColors.dividerGrey,
+                padding: EdgeInsets.all(2),
+                strokeWidth: 3,
+              );
+            } else if (headItem.style == 'GRAY') {
+              contentWidget = Container(
+                padding: EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.dividerGrey, width: 3),
+                    borderRadius: BorderRadius.circular(10)),
+                child: AppNetWorkImage(
+                  src: headItem.picUrl,
+                  width: imageSize,
+                  height: imageSize,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              );
+            }
 
-        List<Widget> headWidgetList =
-            shortcutsData.shortcuts.map<Widget>((headItem) {
-          Widget contentWidget;
-          if (headItem.style == 'YELLOW') {
-            contentWidget = Container(
-              padding: EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.yellow, width: 3),
-                  borderRadius: BorderRadius.circular(10)),
-              child: AppNetWorkImage(
-                src: headItem.picUrl,
-                width: imageSize,
-                height: imageSize,
-                borderRadius: BorderRadius.circular(6),
+            return Container(
+              height: 105,
+              margin: EdgeInsets.only(
+                  right: AppDimensions.smallPadding,
+                  left: (shortcutsData.shortcuts.indexOf(headItem) == 0
+                      ? AppDimensions.primaryPadding
+                      : 0)),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  contentWidget,
+                  SizedBox(
+                    height: AppDimensions.primaryPadding,
+                  ),
+                  SizedBox(
+                    width: 75,
+                    child: Center(
+                      child: Text(
+                        headItem.content,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                ],
               ),
             );
-          } else if (headItem.style == 'DOTTED') {
-            contentWidget = DottedBorder(
-              child: AppNetWorkImage(
-                src: headItem.picUrl,
-                width: imageSize,
-                height: imageSize,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              color: AppColors.dividerGrey,
-              padding: EdgeInsets.all(2),
-              strokeWidth: 3,
-            );
-          } else if (headItem.style == 'GRAY') {
-            contentWidget = Container(
-              padding: EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.dividerGrey, width: 3),
-                  borderRadius: BorderRadius.circular(10)),
-              child: AppNetWorkImage(
-                src: headItem.picUrl,
-                width: imageSize,
-                height: imageSize,
-                borderRadius: BorderRadius.circular(6),
-              ),
-            );
-          }
+          }).toList();
 
           return Container(
-            height: 105,
-            margin: EdgeInsets.only(
-                right: AppDimensions.smallPadding,
-                left: (shortcutsData.shortcuts.indexOf(headItem) == 0
-                    ? AppDimensions.primaryPadding
-                    : 0)),
+            color: Colors.white,
+            padding: EdgeInsets.symmetric(vertical: AppDimensions.smallPadding),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                contentWidget,
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppDimensions.primaryPadding),
+                  child: Text(
+                    shortcutsData.title,
+                    style: TextStyle(
+                      color: AppColors.primaryTextColor,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
                 SizedBox(
                   height: AppDimensions.primaryPadding,
                 ),
-                SizedBox(
-                  width: 75,
-                  child: Center(
-                    child: Text(
-                      headItem.content,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                LimitedBox(
+                  maxHeight: 105,
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    scrollDirection: Axis.horizontal,
+                    children: headWidgetList,
                   ),
-                )
+                ),
               ],
             ),
           );
-        }).toList();
+        }
 
-        return Container(
-          color: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: AppDimensions.smallPadding),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: AppDimensions.primaryPadding),
-                child: Text(
-                  shortcutsData.title,
-                  style: TextStyle(
-                    color: AppColors.primaryTextColor,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: AppDimensions.primaryPadding,
-              ),
-              LimitedBox(
-                maxHeight: 105,
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  scrollDirection: Axis.horizontal,
-                  children: headWidgetList,
-                ),
-              ),
-            ],
-          ),
-        );
+        return SizedBox();
       },
     );
   }

@@ -11,7 +11,9 @@ UserInfo _$UserInfoFromJson(Map json) {
       json['username'] as String,
       json['screenName'] as String,
       json['createdAt'] as String,
-      json['isVerified'] as bool,
+      json['isVerified'] as bool ?? false,
+      json['verifyMessage'] as String ?? '',
+      json['profileImageUrl'] as String ?? '',
       json['avatarImage'] == null
           ? null
           : UserAvatar.fromJson(json['avatarImage'] as Map),
@@ -45,6 +47,8 @@ Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
       'screenName': instance.screenName,
       'createdAt': instance.createdAt,
       'isVerified': instance.isVerified,
+      'verifyMessage': instance.verifyMessage,
+      'profileImageUrl': instance.profileImageUrl,
       'avatarImage': instance.avatarImage,
       'trailingIcons': instance.trailingIcons,
       'statsCount': instance.statsCount,

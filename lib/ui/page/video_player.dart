@@ -13,55 +13,66 @@ class VideoPlayerPage extends StatefulWidget {
 class _VideoPlayerPageState extends State<VideoPlayerPage>
     with AfterLayoutMixin<VideoPlayerPage> {
   VideoPlayerController _controller;
+  MediaBloc _mediaBloc = MediaBloc();
+  Stream<bool> _loadMediaStream;
 
   @override
   void dispose() {
     _controller?.dispose();
+    _mediaBloc?.dispose();
     super.dispose();
   }
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _requestInteractive(widget.id);
-  }
-
-  _requestInteractive(String id,
-      {String type = 'ORIGINAL_POST', String trigger = 'user'}) async {
-    Map result = await ApiRequest.mediaMeta(
-        {'id': id, 'type': type, 'trigger': trigger});
-
-    _controller = VideoPlayerController.network(result['url'])
-      ..initialize().then((_) {
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {
-          _controller.play();
-        });
-      });
+    _mediaBloc.dispatch(FetchMediaEvent(widget.id));
   }
 
   @override
   Widget build(BuildContext context) {
     return NormalPage(
       backgroundColor: Colors.black,
-      body: Builder(builder: (_) {
-        if (_controller == null || !_controller.value.initialized) {
-          return SpinKitWave(
-            size: 25,
-            color: Colors.white54,
-          );
-        }
-        return GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-          child: Center(
-            child: AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: VideoPlayer(_controller),
-            ),
-          ),
-        );
-      }),
+      body: BlocBuilder(
+          bloc: _mediaBloc,
+          builder: (_, state) {
+            if (state is LoadedMediaState) {
+              _controller = VideoPlayerController.network(state.url);
+              _loadMediaStream =
+                  Stream.fromFuture(_controller.initialize()).map((_) {
+                return true;
+              });
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Center(
+                  child: StreamBuilder(
+                    builder: (_, snapshot) {
+                      if (snapshot.hasData) {
+                        _controller.play();
+                        return AspectRatio(
+                          aspectRatio: _controller.value.aspectRatio,
+                          child: VideoPlayer(_controller),
+                        );
+                      }
+
+                      return SpinKitWave(
+                        size: 25,
+                        color: Colors.white54,
+                      );
+                    },
+                    stream: _loadMediaStream,
+                  ),
+                ),
+              );
+            }
+
+            return SpinKitWave(
+              size: 25,
+              color: Colors.white54,
+            );
+          }),
       needAppBar: false,
     );
   }
