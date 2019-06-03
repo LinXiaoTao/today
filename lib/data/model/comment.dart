@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:today/data/model/user.dart';
-import 'package:today/data/model/picture.dart';
+import 'package:today/data/model/models.dart';
 
 part 'comment.g.dart';
 
@@ -63,6 +62,9 @@ class Comment {
   /// 回复的评论
   final Comment replyToComment;
 
+  @JsonKey(defaultValue: [])
+  final List<UrlsInText> urlsInText;
+
   Comment(
       this.type,
       this.id,
@@ -79,7 +81,8 @@ class Comment {
       this.pictures,
       this.liked,
       this.hotReplies,
-      this.replyToComment);
+      this.replyToComment,
+      this.urlsInText);
 
   factory Comment.fromJson(Map json) => _$CommentFromJson(json);
 

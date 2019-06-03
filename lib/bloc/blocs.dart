@@ -9,3 +9,4 @@ export 'message_related/bloc.dart';
 export 'comment_detail/bloc.dart';
 export 'comment_reply/bloc.dart';
 export 'media/bloc.dart';
+export 'video_list/bloc.dart';

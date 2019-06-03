@@ -14,7 +14,6 @@ export 'dart:async';
 export 'package:today/widget/init.dart';
 export 'dart:math';
 export 'package:flutter/gestures.dart';
-export 'package:scoped_model/scoped_model.dart';
 export 'package:fluttertoast/fluttertoast.dart';
 export 'package:flutter_spinkit/flutter_spinkit.dart';
 export 'package:flutter_easyrefresh/phoenix_header.dart';
@@ -27,12 +26,16 @@ class NormalPage extends StatefulWidget {
   final Widget body;
   final bool needAppBar;
   final Color backgroundColor;
+  final Color statusBarBackgroundColor;
+  final IconThemeData iconTheme;
 
   NormalPage(
       {this.title,
       @required this.body,
       this.needAppBar = true,
-      this.backgroundColor});
+      this.backgroundColor,
+      this.statusBarBackgroundColor,
+      this.iconTheme});
 
   @override
   State<StatefulWidget> createState() {
@@ -48,6 +51,8 @@ class _NormalPageState extends State<NormalPage> {
       appBar: (widget.needAppBar
           ? AppBar(
               title: widget.title,
+              backgroundColor: widget.statusBarBackgroundColor,
+              iconTheme: widget.iconTheme,
             )
           : null),
       body: widget.body,
@@ -96,35 +101,35 @@ class PageLoadingWidget extends StatelessWidget {
 class AppColors {
   AppColors._();
 
-  static final primaryTextColor = Color(0xFF333333);
+  static const primaryTextColor = Color(0xFF333333);
 
-  static final normalTextColor = Color(0xFF666666);
+  static const normalTextColor = Color(0xFF666666);
 
-  static final tipsTextColor = Color(0xFF999999);
+  static const tipsTextColor = Color(0xFF999999);
 
-  static final statusBarColor = Colors.white;
+  static const statusBarColor = Colors.white;
 
-  static final accentColor = yellow;
+  static const accentColor = yellow;
 
-  static final yellow = Color(0xFFFFE411);
+  static const yellow = Color(0xFFFFE411);
 
-  static final red = Color(0xFFE4583E);
+  static const red = Color(0xFFE4583E);
 
-  static final placeholderGray = Color(0xFFF0F3F5);
+  static const placeholderGray = Color(0xFFF0F3F5);
 
-  static final blue = Color(0xFF03A9F4);
+  static const blue = Color(0xFF03A9F4);
 
-  static final green = Color(0xFF1BAF13);
+  static const green = Color(0xFF1BAF13);
 
-  static final backgroundGray = Color(0xFFF0F3F5);
+  static const backgroundGray = Color(0xFFF0F3F5);
 
-  static final backgroundFollow = Color(0xFFFBFBFB);
+  static const backgroundFollow = Color(0xFFFBFBFB);
 
-  static final topicBackground = Color(0xFFFAFAFA);
+  static const topicBackground = Color(0xFFFAFAFA);
 
-  static final dividerGrey = Color(0xFFDBDBDB);
+  static const dividerGrey = Color(0xFFDBDBDB);
 
-  static final darkGrey = Color(0xFFF0F3F5);
+  static const darkGrey = Color(0xFFF0F3F5);
 
   static final commentBackgroundGray = Colors.grey[100];
 }

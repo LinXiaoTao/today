@@ -56,7 +56,11 @@ Comment _$CommentFromJson(Map json) {
           [],
       json['replyToComment'] == null
           ? null
-          : Comment.fromJson(json['replyToComment'] as Map));
+          : Comment.fromJson(json['replyToComment'] as Map),
+      (json['urlsInText'] as List)
+              ?.map((e) => e == null ? null : UrlsInText.fromJson(e as Map))
+              ?.toList() ??
+          []);
 }
 
 Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
@@ -75,5 +79,6 @@ Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
       'pictures': instance.pictures,
       'liked': instance.liked,
       'hotReplies': instance.hotReplies,
-      'replyToComment': instance.replyToComment
+      'replyToComment': instance.replyToComment,
+      'urlsInText': instance.urlsInText
     };

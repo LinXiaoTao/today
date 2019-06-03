@@ -30,50 +30,46 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
 
   @override
   Widget build(BuildContext context) {
-    return NormalPage(
-      backgroundColor: Colors.black,
-      body: BlocBuilder(
-          bloc: _mediaBloc,
-          builder: (_, state) {
-            if (state is LoadedMediaState) {
-              _controller = VideoPlayerController.network(state.url);
-              _loadMediaStream =
-                  Stream.fromFuture(_controller.initialize()).map((_) {
-                return true;
-              });
+    return BlocBuilder(
+        bloc: _mediaBloc,
+        builder: (_, state) {
+          if (state is LoadedMediaState) {
+            _controller = VideoPlayerController.network(state.url);
+            _loadMediaStream =
+                Stream.fromFuture(_controller.initialize()).map((_) {
+              return true;
+            });
 
-              return GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-                child: Center(
-                  child: StreamBuilder(
-                    builder: (_, snapshot) {
-                      if (snapshot.hasData) {
-                        _controller.play();
-                        return AspectRatio(
-                          aspectRatio: _controller.value.aspectRatio,
-                          child: VideoPlayer(_controller),
-                        );
-                      }
-
-                      return SpinKitWave(
-                        size: 25,
-                        color: Colors.white54,
+            return GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Center(
+                child: StreamBuilder(
+                  builder: (_, snapshot) {
+                    if (snapshot.hasData) {
+                      _controller.play();
+                      return AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
                       );
-                    },
-                    stream: _loadMediaStream,
-                  ),
-                ),
-              );
-            }
+                    }
 
-            return SpinKitWave(
-              size: 25,
-              color: Colors.white54,
+                    return SpinKitWave(
+                      size: 25,
+                      color: Colors.white54,
+                    );
+                  },
+                  stream: _loadMediaStream,
+                ),
+              ),
             );
-          }),
-      needAppBar: false,
-    );
+          }
+
+          return SpinKitWave(
+            size: 25,
+            color: Colors.white54,
+          );
+        });
   }
 }

@@ -5,8 +5,7 @@ import 'package:today/data/model/recommendfeed.dart';
 import 'package:today/ui/page/picture_detail.dart';
 import 'package:today/ui/page/message/message_detail.dart';
 import 'package:today/widget/real_rich_text.dart';
-import 'package:today/ui/page/video_player.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:today/ui/page/message/video_list.dart';
 
 final intl.DateFormat _dateFormat = intl.DateFormat('MM/dd HH:mm');
 
@@ -276,119 +275,154 @@ class MessageItem extends StatelessWidget {
               (topComment == null
                   ? SizedBox()
                   : Container(
-                      color: Colors.grey[50],
                       margin: EdgeInsets.only(
                           left: AppDimensions.primaryPadding,
                           right: AppDimensions.primaryPadding,
                           bottom: AppDimensions.primaryPadding),
-                      padding: EdgeInsets.all(AppDimensions.primaryPadding),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Image.asset('images/ic_comment_popular.png'),
-                              Text(
-                                "${topComment.likeCount} 赞",
-                                style: TextStyle(
-                                    color: AppColors.normalTextColor,
-                                    fontSize: 12),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: AppDimensions.smallPadding,
-                          ),
-                          Builder(builder: (context) {
-                            TapGestureRecognizer tap = TapGestureRecognizer();
-                            tap.onTap = () {
-                              Fluttertoast.showToast(
-                                  msg: topComment.user.screenName);
-                            };
-                            TextSpan child = TextSpan(
-                                text: '：${topComment.content}',
-                                style: TextStyle(
-                                    color: AppColors.primaryTextColor));
-
-                            TextSpan content = TextSpan(
-                                text: topComment.user.screenName,
-                                style: TextStyle(color: AppColors.blue),
-                                recognizer: tap,
-                                children: [child]);
-
-                            return Text.rich(
-                              content,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                              ),
-                            );
-                          }),
-                          LayoutBuilder(builder: (context, layout) {
-                            if (topComment.pictures.isEmpty) return SizedBox();
-
-                            debugPrint(
-                                "topComent picture: ${topComment.pictures}");
-
-                            double width =
-                                topComment.pictures.first.width.toDouble();
-                            double height =
-                                topComment.pictures.first.height.toDouble();
-                            double maxWidth = MediaQuery.of(context).size.width;
-                            Map measure = ImageUtil.measureImageSize(
-                              srcSizes: {'w': width, 'h': height},
-                              maxSizes: {
-                                'w': maxWidth * 2 / 3,
-                                'h': maxWidth / 2
-                              },
-                            );
-
-                            return Container(
-                              margin: EdgeInsets.only(
-                                  top: AppDimensions.primaryPadding),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: <Widget>[
-                                  Hero(
-                                    tag: topComment.pictures.first,
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () {
-                                          Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                  builder: (context) {
-                                            return PictureDetailPage(
-                                                topComment.pictures);
-                                          }));
-                                        },
-                                        child: AppNetWorkImage(
-                                          src: topComment
-                                              .pictures.first.thumbnailUrl,
-                                          width: measure['w'],
-                                          height: measure['h'],
-                                          fit: BoxFit.fill,
-                                        ),
-                                      ),
+                      child: Material(
+                        color: Colors.grey[50],
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (_) {
+                              return MessageDetailPage(
+                                id: item.id,
+                                pageName: 'tab_recommend',
+                                ref: bodyItem.user.ref,
+                              );
+                            }));
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            padding:
+                                EdgeInsets.all(AppDimensions.primaryPadding),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Image.asset(
+                                        'images/ic_comment_popular.png'),
+                                    Text(
+                                      "${topComment.likeCount} 赞",
+                                      style: TextStyle(
+                                          color: AppColors.normalTextColor,
+                                          fontSize: 12),
                                     ),
-                                  ),
-                                  Builder(builder: (_) {
-                                    return SizedBox(
-                                      width: measure['w'],
-                                      height: measure['h'],
-                                      child: MessageBodyWidget._createImageType(
-                                          topComment.pictures.first),
-                                    );
-                                  }),
-                                ],
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                    )),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: AppDimensions.smallPadding,
+                                ),
+                                Builder(builder: (context) {
+                                  TapGestureRecognizer tap =
+                                      TapGestureRecognizer();
+                                  tap.onTap = () {
+                                    Fluttertoast.showToast(
+                                        msg: topComment.user.screenName);
+                                  };
+
+                                  List<TextSpan> child = [];
+
+                                  if (topComment.level > 2) {
+                                    /// 多级回复
+                                    child.add(TextSpan(
+                                        text: '${topComment.user.screenName}',
+                                        style:
+                                            TextStyle(color: AppColors.blue)));
+                                    child.add(TextSpan(text: ' 回复 '));
+                                    child.add(TextSpan(
+                                        text:
+                                            '${topComment.replyToComment.user.screenName}：',
+                                        style:
+                                            TextStyle(color: AppColors.blue)));
+                                  } else {
+                                    child.add(TextSpan(
+                                        text: '${topComment.user.screenName}：',
+                                        style:
+                                            TextStyle(color: AppColors.blue)));
+                                  }
+
+                                  child.addAll(_parseUrlsInText(
+                                      topComment.urlsInText,
+                                      topComment.content));
+
+                                  return Text.rich(
+                                    TextSpan(children: child),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        color: AppColors.primaryTextColor),
+                                  );
+                                }),
+                                LayoutBuilder(builder: (context, layout) {
+                                  if (topComment.pictures.isEmpty)
+                                    return SizedBox();
+
+                                  double width = topComment.pictures.first.width
+                                      .toDouble();
+                                  double height = topComment
+                                      .pictures.first.height
+                                      .toDouble();
+                                  double maxWidth =
+                                      MediaQuery.of(context).size.width;
+                                  Map measure = ImageUtil.measureImageSize(
+                                    srcSizes: {'w': width, 'h': height},
+                                    maxSizes: {
+                                      'w': maxWidth * 2 / 3,
+                                      'h': maxWidth / 2
+                                    },
+                                  );
+
+                                  return Container(
+                                    margin: EdgeInsets.only(
+                                        top: AppDimensions.primaryPadding),
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: <Widget>[
+                                        Hero(
+                                          tag: topComment.pictures.first,
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              onTap: () {
+                                                Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (context) {
+                                                  return PictureDetailPage(
+                                                      topComment.pictures);
+                                                }));
+                                              },
+                                              child: AppNetWorkImage(
+                                                src: topComment.pictures.first
+                                                    .thumbnailUrl,
+                                                width: measure['w'],
+                                                height: measure['h'],
+                                                fit: BoxFit.fill,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Builder(builder: (_) {
+                                          return SizedBox(
+                                            width: measure['w'],
+                                            height: measure['h'],
+                                            child: MessageBodyWidget
+                                                ._createImageType(
+                                                    topComment.pictures.first),
+                                          );
+                                        }),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ))),
               Padding(
                 padding: EdgeInsets.symmetric(
                     horizontal: AppDimensions.primaryPadding),
@@ -484,7 +518,7 @@ class LinkInfoWidget extends StatelessWidget {
         children: <Widget>[
           VideoPreviewWidget(
             video: video,
-            id: bodyItem.id,
+            message: bodyItem,
           ),
           LayoutBuilder(
             builder: (_, layout) {
@@ -730,7 +764,7 @@ class MessageBodyWidget extends StatelessWidget {
         margin: EdgeInsets.only(top: AppDimensions.smallPadding),
         child: VideoPreviewWidget(
           video: video,
-          id: bodyItem.id,
+          message: bodyItem,
         ),
       );
     } else if (bodyItem.pictures.isNotEmpty) {
@@ -831,11 +865,12 @@ class MessageBodyWidget extends StatelessWidget {
 }
 
 class VideoPreviewWidget extends StatelessWidget {
-  const VideoPreviewWidget({Key key, @required this.video, @required this.id})
+  const VideoPreviewWidget(
+      {Key key, @required this.video, @required this.message})
       : super(key: key);
 
   final Video video;
-  final String id;
+  final Message message;
 
   @override
   Widget build(BuildContext context) {
@@ -843,7 +878,7 @@ class VideoPreviewWidget extends StatelessWidget {
       return GestureDetector(
         onTap: () {
           Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-            return VideoPlayerPage(id: id);
+            return VideoListPage(message);
           }));
         },
         child: SizedBox(
@@ -936,12 +971,16 @@ class SingleImageWidget extends StatelessWidget {
 }
 
 class ScreenNameWidget extends StatelessWidget {
-  const ScreenNameWidget({
-    Key key,
-    @required this.user,
-  }) : super(key: key);
+  const ScreenNameWidget(
+      {Key key,
+      @required this.user,
+      this.textColor = AppColors.primaryTextColor,
+      this.fontSize = 14})
+      : super(key: key);
 
   final UserInfo user;
+  final Color textColor;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -949,10 +988,19 @@ class ScreenNameWidget extends StatelessWidget {
       children: <Widget>[
         Text(
           user.screenName,
-          style: TextStyle(color: AppColors.primaryTextColor),
+          style: TextStyle(color: textColor, fontSize: fontSize),
         ),
+        Builder(builder: (_) {
+          if (user.isVerified) {
+            return Text(
+              '（${user.verifyMessage}）',
+              style: TextStyle(color: AppColors.normalTextColor, fontSize: 12),
+            );
+          }
+          return SizedBox();
+        }),
         SizedBox(
-          width: AppDimensions.smallPadding,
+          width: AppDimensions.smallPadding / 2,
         ),
         Builder(builder: (context) {
           if (user.trailingIcons.isEmpty) {
@@ -1100,29 +1148,26 @@ class CommentItemWidget extends StatelessWidget {
                         ),
                         Builder(
                           builder: (_) {
-                            if (comment.level <= 2) {
-                              return Text(
-                                comment.content,
-                                style: TextStyle(
-                                    color: AppColors.primaryTextColor,
-                                    fontSize: 13),
-                              );
-                            } else {
+                            List<TextSpan> child = [];
+
+                            if (comment.level > 2) {
                               /// 多级回复
 
-                              List<TextSpan> child = [];
                               child.add(TextSpan(text: '回复'));
                               child.add(TextSpan(
                                   text:
-                                      ' ${comment.replyToComment.user.screenName}',
+                                      ' ${comment.replyToComment.user.screenName}：',
                                   style: TextStyle(color: AppColors.blue)));
-                              child.add(TextSpan(text: '：${comment.content}'));
-                              return Text.rich(TextSpan(
-                                  children: child,
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.primaryTextColor)));
                             }
+
+                            child.addAll(_parseUrlsInText(
+                                comment.urlsInText, comment.content));
+
+                            return Text.rich(TextSpan(
+                                children: child,
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.primaryTextColor)));
                           },
                         ),
                       ],
@@ -1165,9 +1210,8 @@ class CommentItemWidget extends StatelessWidget {
                     }
 
                     if (data.content.isNotEmpty) {
-                      child.add(TextSpan(
-                        text: data.content,
-                      ));
+                      child.addAll(
+                          _parseUrlsInText(data.urlsInText, data.content));
                     }
 
                     if (data.pictures.isNotEmpty) {
@@ -1295,4 +1339,48 @@ class AvatarWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+List<TextSpan> _parseUrlsInText(List<UrlsInText> urlsInText, String content) {
+  List<TextSpan> child = [];
+
+  List<int> indexList = [];
+
+  for (UrlsInText text in urlsInText) {
+    /// 遍历找出所有的匹配的
+
+    int start = 0;
+    RegExp reg = RegExp(RegExp.escape(text.originalUrl));
+    int index = -1;
+    while ((index = content.substring(start).indexOf(reg)) != -1) {
+      indexList.add(index);
+      start = index + 1;
+    }
+  }
+
+  debugPrint("indexList = $indexList");
+
+  int cur = 0;
+  int indexPos = 0;
+  while (indexPos < indexList.length) {
+    if (indexList[indexPos] > cur) {
+      child.add(TextSpan(text: content.substring(cur, indexList[indexPos])));
+      cur = indexList[indexPos];
+    } else {
+      int startIndex = indexList[indexPos];
+      int endIndex = startIndex + urlsInText[indexPos].originalUrl.length;
+
+      child.add(TextSpan(
+          text: urlsInText[indexPos].title,
+          style: TextStyle(color: AppColors.blue)));
+      cur = endIndex;
+      indexPos++;
+    }
+  }
+
+  if (cur < content.length) {
+    child.add(TextSpan(text: content.substring(cur, content.length)));
+  }
+
+  return child;
 }

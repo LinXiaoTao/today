@@ -186,6 +186,16 @@ class ApiRequest {
     });
   }
 
+  static Future<List<Message>> relatedVideo(String id,
+      {String type = 'ORIGINAL_POST'}) {
+    return _dio.post('/1.0/related/video', data: {'id': id, 'type': type}).then(
+        (value) {
+      return (value.data['data'] as List).map((item) {
+        return Message.fromJson(item);
+      }).toList();
+    });
+  }
+
   static initDio() async {
     if (_init) return;
     String deviceId = await SimpleStorage.getString(key_device_id);
@@ -212,18 +222,18 @@ class ApiRequest {
     }));
 
     /// proxy
-//    if (!const bool.fromEnvironment('dart.vm.product')) {
-//      /// 不是 release
-//      (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-//          (client) {
-//        client.findProxy = (url) {
-//          return "PROXY 192.168.2.104:8888";
-//        };
-//        //抓Https包设置
-//        client.badCertificateCallback =
-//            (X509Certificate cert, String host, int port) => true;
-//      };
-//    }
+    if (!const bool.fromEnvironment('dart.vm.product')) {
+      /// 不是 release
+      (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (client) {
+        client.findProxy = (url) {
+          return "PROXY 192.168.2.103:8888";
+        };
+        //抓Https包设置
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
+      };
+    }
 
     /// business
     _dio.interceptors.add(BusinessInterceptor());
