@@ -1,6 +1,6 @@
 import 'package:today/ui/ui_base.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
-import 'package:today/ui/message.dart';
+import 'package:today/widget/message.dart';
 import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
 
 class CommentDetailPage extends StatefulWidget {

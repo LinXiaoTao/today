@@ -8,3 +8,5 @@ export 'shortcuts.dart';
 export 'topic.dart';
 export 'user.dart';
 export 'video.dart';
+export 'personal_update.dart';
+export 'user_profile.dart';

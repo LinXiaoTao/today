@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'models.dart';
 
 part 'user.g.dart';
 
@@ -27,6 +28,8 @@ class UserInfo {
 
   final StatsCount statsCount;
 
+  final Picture backgroundImage;
+
   final String id;
 
   final Preferences preferences;
@@ -49,40 +52,74 @@ class UserInfo {
   final List<String> enabledFeatures;
 
   /// 性别：MALE
+  @JsonKey(defaultValue: '')
   final String gender;
 
+  /// 星座
+  @JsonKey(defaultValue: '')
+  final String zodiac;
+
+  /// 行业
+  @JsonKey(defaultValue: '')
+  final String industry;
+
+  @JsonKey(defaultValue: '')
   final String city;
 
+  @JsonKey(defaultValue: '')
   final String country;
 
+  @JsonKey(defaultValue: '')
   final String province;
 
   final String ref;
 
+  @JsonKey(defaultValue: [])
+  final List<Medals> medals;
+
+  @JsonKey(defaultValue: [])
+  final List<TrailingIcons> profileTags;
+
+  String get genderText {
+    if (gender.isEmpty) return '';
+    return this.gender == 'MALE' ? '他' : '她';
+  }
+
+  String get genderType {
+    if (gender.isEmpty) return '';
+    return this.gender == 'MALE' ? '男' : '女';
+  }
+
   UserInfo(
-      this.username,
-      this.screenName,
-      this.createdAt,
-      this.isVerified,
-      this.verifyMessage,
-      this.profileImageUrl,
-      this.avatarImage,
-      this.trailingIcons,
-      this.statsCount,
-      this.id,
-      this.preferences,
-      this.isBetaUser,
-      this.usernameSet,
-      this.isLoginUser,
-      this.profileVisitDescription,
-      this.briefIntro,
-      this.bio,
-      this.enabledFeatures,
-      this.gender,
-      this.city,
-      this.country,
-      this.province,
-      this.ref);
+    this.username,
+    this.screenName,
+    this.createdAt,
+    this.isVerified,
+    this.verifyMessage,
+    this.profileImageUrl,
+    this.avatarImage,
+    this.trailingIcons,
+    this.statsCount,
+    this.backgroundImage,
+    this.id,
+    this.preferences,
+    this.isBetaUser,
+    this.usernameSet,
+    this.isLoginUser,
+    this.profileVisitDescription,
+    this.briefIntro,
+    this.bio,
+    this.enabledFeatures,
+    this.gender,
+    this.zodiac,
+    this.industry,
+    this.city,
+    this.country,
+    this.province,
+    this.ref,
+    this.profileTags,
+    this.medals,
+  );
 
   factory UserInfo.fromJson(Map json) => _$UserInfoFromJson(json);
 
@@ -205,12 +242,37 @@ class Background {
 
 @JsonSerializable()
 class TrailingIcons {
+  @JsonKey(defaultValue: '')
   final String url;
+  @JsonKey(defaultValue: '')
   final String picUrl;
+  @JsonKey(defaultValue: '')
+  final String text;
 
-  TrailingIcons(this.url, this.picUrl);
+  /// NORMAL
+  final String type;
+
+  TrailingIcons(this.url, this.picUrl, this.text, this.type);
 
   factory TrailingIcons.fromJson(Map json) => _$TrailingIconsFromJson(json);
 
   Map<String, dynamic> toJson() => _$TrailingIconsToJson(this);
+}
+
+@JsonSerializable()
+class Medals {
+  @JsonKey(defaultValue: '')
+  final String picUrl;
+  @JsonKey(defaultValue: '')
+  final String url;
+  @JsonKey(defaultValue: '')
+  final String name;
+  @JsonKey(defaultValue: '')
+  final String gotMedalAt;
+
+  Medals(this.picUrl, this.url, this.name, this.gotMedalAt);
+
+  factory Medals.fromJson(Map json) => _$MedalsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MedalsToJson(this);
 }

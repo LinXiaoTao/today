@@ -41,6 +41,7 @@ Message _$MessageFromJson(Map json) {
       (json['attachedComments'] as List)
           ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
           ?.toList(),
+      json['target'] == null ? null : Message.fromJson(json['target'] as Map),
       json['viewType'] as String);
 }
 
@@ -66,6 +67,7 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
       'subtitle': instance.subtitle,
       'topComment': instance.topComment,
       'attachedComments': instance.attachedComments,
+      'target': instance.target,
       'viewType': instance.viewType
     };
 

@@ -162,6 +162,8 @@ class ImageResolver {
   ui.Image image;
   ImageResolverListener _listener;
 
+  ImageStreamListener _imageStreamListener;
+
   ImageResolver(this.imageProvider);
 
   /// set the ImageConfiguration from outside
@@ -181,9 +183,12 @@ class ImageResolver {
     assert(_imageStream != null);
 
     this._listener = listener;
+    if (_imageStreamListener == null) {
+      _imageStreamListener = ImageStreamListener(_handleImageChanged);
+    }
     if (_imageStream.key != oldImageStream?.key) {
-      oldImageStream?.removeListener(_handleImageChanged);
-      _imageStream.addListener(_handleImageChanged);
+      oldImageStream?.removeListener(_imageStreamListener);
+      _imageStream.addListener(_imageStreamListener);
     }
   }
 
@@ -193,7 +198,8 @@ class ImageResolver {
   }
 
   void stopListening() {
-    _imageStream?.removeListener(_handleImageChanged);
+    if (_imageStreamListener == null) return;
+    _imageStream?.removeListener(_imageStreamListener);
   }
 }
 
@@ -287,8 +293,6 @@ class _RealRichRenderParagraph extends RenderParagraph {
   @override
   void performLayout() {
     super.performLayout();
-
-    debugPrint("size = $size");
   }
 
   /// this method draws inline-image over blank text space.

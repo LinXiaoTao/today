@@ -40,9 +40,15 @@ class ApiRequest {
   }
 
   /// 获取用户数据
-  static Future<UserInfo> profile() async {
-    return _dio.get("/1.0/users/profile").then((value) {
-      return UserInfo.fromJson(value.data["user"]);
+  static Future<UserProfile> profile({String username = ''}) async {
+    Map<String, dynamic> query = {};
+    if (username.isNotEmpty) {
+      query['username'] = username;
+    }
+    return _dio.get("/1.0/users/profile", queryParameters: query).then((value) {
+      return UserProfile.fromJson(value.data);
+    }).catchError((error) {
+      debugPrint("error = $error");
     });
   }
 
@@ -196,6 +202,17 @@ class ApiRequest {
     });
   }
 
+  static Future<PersonalUpdate> personalUpdates(String username,
+      {int limit = 25, Map loadMoreKey}) {
+    final data = {'username': username, 'limit': limit};
+    if (loadMoreKey != null) {
+      data['loadMoreKey'] = loadMoreKey;
+    }
+    return _dio.post('/1.0/personalUpdates/single', data: data).then((value) {
+      return PersonalUpdate.fromJson(value.data);
+    });
+  }
+
   static initDio() async {
     if (_init) return;
     String deviceId = await SimpleStorage.getString(key_device_id);
@@ -227,7 +244,7 @@ class ApiRequest {
       (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
           (client) {
         client.findProxy = (url) {
-          return "PROXY 192.168.2.103:8888";
+          return "PROXY 192.168.2.102:8888";
         };
         //抓Https包设置
         client.badCertificateCallback =
@@ -239,6 +256,13 @@ class ApiRequest {
     _dio.interceptors.add(BusinessInterceptor());
     _init = true;
     debugPrint("init success");
+
+    if (!LoginState.isLogin) {
+      final userInfo = await register();
+      debugPrint("注册成功：${userInfo.username}");
+      SimpleStorage.putString(key_username, userInfo.username);
+      await LoginState.init();
+    }
 
     /// 刷新 token
     bool value = await refreshToken();

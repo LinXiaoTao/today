@@ -12,6 +12,7 @@ class AppNetWorkImage extends StatelessWidget {
   final AlignmentGeometry alignment;
   final BorderRadiusGeometry borderRadius;
   final BoxBorder border;
+  final ColorFilter colorFilter;
 
   AppNetWorkImage(
       {@required this.src,
@@ -20,7 +21,8 @@ class AppNetWorkImage extends StatelessWidget {
       this.fit = BoxFit.cover,
       this.alignment = Alignment.center,
       this.borderRadius,
-      this.border});
+      this.border,
+      this.colorFilter});
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +42,17 @@ class AppNetWorkImage extends StatelessWidget {
           image: DecorationImage(
               fit: fit,
               alignment: alignment,
-              image: CachedNetworkImageProvider(src, headers: {
-                key_access_token: LoginState.accessToken,
-                key_device_id: LoginState.deviceId
-              }))),
+              image: createImageProvider(src),
+              colorFilter: colorFilter)),
     );
   }
+}
+
+createImageProvider(String src) {
+  return CachedNetworkImageProvider(src, headers: {
+    key_access_token: LoginState.accessToken,
+    key_device_id: LoginState.deviceId
+  });
 }
 
 class ImageUtil {
@@ -63,7 +70,6 @@ class ImageUtil {
     double maxH = maxSizes['h'];
     double outW = srcH;
     double outH = maxH;
-    debugPrint('maxW = $maxW ; maxH = $maxH ; maxScale = ${maxW / maxH}');
     if (srcW > 0 && srcH > 0) {
       /// w / h, 1.0 / 0.5625
       double scale = max(0.5625, min(srcW / srcH, double.maxFinite));
@@ -77,8 +83,8 @@ class ImageUtil {
       outW = outH;
     }
 
-    debugPrint(
-        'srcW = $srcW; srcH = $srcH; scale = ${srcW / srcH} ; outW = $outW; outH = $outH ; outScale = ${outW / outH}');
+//    debugPrint(
+//        'srcW = $srcW; srcH = $srcH; scale = ${srcW / srcH} ; outW = $outW; outH = $outH ; outScale = ${outW / outH}');
 
     return {'w': outW, 'h': outH};
   }

@@ -4,8 +4,8 @@ import 'package:today/ui/ui_base.dart';
 import 'package:today/data/model/recommendfeed.dart';
 import 'package:today/ui/page/picture_detail.dart';
 import 'package:today/ui/page/message/message_detail.dart';
-import 'package:today/widget/real_rich_text.dart';
 import 'package:today/ui/page/message/video_list.dart';
+import 'package:today/widget/widgets.dart';
 
 final intl.DateFormat _dateFormat = intl.DateFormat('MM/dd HH:mm');
 
@@ -210,7 +210,7 @@ class MessageItem extends StatelessWidget {
                 builder: (context, layout) {
                   return Container(
                     width: layout.maxWidth,
-                    padding: EdgeInsets.all(10),
+                    padding: EdgeInsets.all(AppDimensions.primaryPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -246,17 +246,16 @@ class MessageItem extends StatelessWidget {
                                     color: AppColors.tipsTextColor,
                                     fontSize: 12),
                               ),
-                              Spacer(),
                               Builder(builder: (context) {
                                 if (bodyItem.poi == null ||
                                     bodyItem.poi.name == null)
                                   return SizedBox();
 
-                                return LimitedBox(
-                                  maxWidth: 200,
+                                return Expanded(
                                   child: Text(
                                     bodyItem.poi.name,
                                     maxLines: 1,
+                                    textAlign: TextAlign.right,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                         fontSize: 12,
@@ -431,7 +430,11 @@ class MessageItem extends StatelessWidget {
                   color: AppColors.dividerGrey,
                 ),
               ),
-              CommentWidget(bodyItem: bodyItem),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppDimensions.primaryPadding, vertical: 15),
+                child: CommentWidget(bodyItem: bodyItem),
+              ),
             ],
           ),
         ),
@@ -587,39 +590,35 @@ class CommentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: AppDimensions.primaryPadding, vertical: 15),
-      child: Row(
-        children: <Widget>[
-          Image.asset('images/ic_messages_like_unselected.png'),
-          SizedBox(
-            width: 4,
-          ),
-          Text(bodyItem.likeCount.toString(),
-              style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
-          SizedBox(
-            width: 80,
-          ),
-          Image.asset('images/ic_messages_comment.png'),
-          SizedBox(
-            width: 4,
-          ),
-          Text(bodyItem.commentCount.toString(),
-              style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
-          SizedBox(
-            width: 80,
-          ),
-          Image.asset('images/ic_messages_share.png'),
-          SizedBox(
-            width: 4,
-          ),
-          Text(bodyItem.shareCount.toString(),
-              style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
-          Spacer(),
-          Image.asset('images/ic_messages_more.png'),
-        ],
-      ),
+    return Row(
+      children: <Widget>[
+        Image.asset('images/ic_messages_like_unselected.png'),
+        SizedBox(
+          width: 4,
+        ),
+        Text(bodyItem.likeCount.toString(),
+            style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
+        SizedBox(
+          width: 80,
+        ),
+        Image.asset('images/ic_messages_comment.png'),
+        SizedBox(
+          width: 4,
+        ),
+        Text(bodyItem.commentCount.toString(),
+            style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
+        SizedBox(
+          width: 80,
+        ),
+        Image.asset('images/ic_messages_share.png'),
+        SizedBox(
+          width: 4,
+        ),
+        Text(bodyItem.shareCount.toString(),
+            style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
+        Spacer(),
+        Image.asset('images/ic_messages_more.png'),
+      ],
     );
   }
 }
@@ -645,19 +644,14 @@ class RichTextWidget extends StatelessWidget {
 
                 for (UrlsInText text in bodyItem.urlsInText) {
                   /// 遍历找出所有的匹配的
-
-                  int start = 0;
                   RegExp reg = RegExp(RegExp.escape(text.originalUrl));
-                  int index = -1;
-                  while ((index =
-                          bodyItem.content.substring(start).indexOf(reg)) !=
-                      -1) {
-                    indexList.add(index);
-                    start = index + 1;
+                  final matches = reg.allMatches(bodyItem.content);
+                  for (var match in matches) {
+                    if (!indexList.contains(match.start)) {
+                      indexList.add(match.start);
+                    }
                   }
                 }
-
-                debugPrint("indexList = $indexList");
 
                 int cur = 0;
                 int indexPos = 0;
@@ -707,12 +701,14 @@ class RichTextWidget extends StatelessWidget {
                 textDirection: TextDirection.ltr,
               );
 
-              debugPrint("maxWidth = ${layout.maxWidth}");
               painter.layout(maxWidth: layout.maxWidth);
 
-              var textLine = painter.height / painter.preferredLineHeight;
+              final textHeight = painter
+                  .computeDistanceToActualBaseline(TextBaseline.ideographic);
 
-              debugPrint("text height = ${painter.height}; line = $textLine");
+              var textLine = painter.height / textHeight;
+
+//              debugPrint("text height = ${painter.height}; line = $textLine");
 
               if (!showFullContent && textLine > 8) {
                 return Column(
@@ -984,48 +980,63 @@ class ScreenNameWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Text(
-          user.screenName,
-          style: TextStyle(color: textColor, fontSize: fontSize),
-        ),
-        Builder(builder: (_) {
-          if (user.isVerified) {
-            return Text(
-              '（${user.verifyMessage}）',
-              style: TextStyle(color: AppColors.normalTextColor, fontSize: 12),
-            );
-          }
-          return SizedBox();
-        }),
-        SizedBox(
-          width: AppDimensions.smallPadding / 2,
-        ),
-        Builder(builder: (context) {
-          if (user.trailingIcons.isEmpty) {
-            return SizedBox();
-          }
-
-          List<Widget> images = [];
-
-          for (TrailingIcons icon in user.trailingIcons) {
-            images.add(AppNetWorkImage(
-              src: icon.picUrl,
-              width: 15,
-              height: 15,
-              borderRadius: BorderRadius.circular(0),
-            ));
-            images.add(SizedBox(
-              width: 1,
-            ));
-          }
-
-          return Row(
-            children: images,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+          return PersonalDetailPage(
+            username: user.username,
           );
-        }),
-      ],
+        }));
+      },
+      child: Row(
+        children: <Widget>[
+          Text(
+            user.screenName,
+            style: TextStyle(color: textColor, fontSize: fontSize),
+          ),
+          Builder(builder: (_) {
+            /// todo 优化
+            if (user.isVerified) {
+              return LimitedBox(
+                maxWidth: 120,
+                child: Text(
+                  '（${user.verifyMessage}）',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: textColor, fontSize: 12),
+                ),
+              );
+            }
+            return SizedBox();
+          }),
+          SizedBox(
+            width: AppDimensions.smallPadding / 2,
+          ),
+          Builder(builder: (context) {
+            if (user.trailingIcons.isEmpty) {
+              return SizedBox();
+            }
+
+            List<Widget> images = [];
+
+            for (TrailingIcons icon in user.trailingIcons) {
+              images.add(AppNetWorkImage(
+                src: icon.picUrl,
+                width: 15,
+                height: 15,
+                borderRadius: BorderRadius.circular(0),
+              ));
+              images.add(SizedBox(
+                width: 1,
+              ));
+            }
+
+            return Row(
+              children: images,
+            );
+          }),
+        ],
+      ),
     );
   }
 }
@@ -1306,36 +1317,46 @@ class CommentItemWidget extends StatelessWidget {
 class AvatarWidget extends StatelessWidget {
   final UserInfo user;
   final double size;
+  final bool jumpDetail;
 
-  AvatarWidget(this.user, {this.size = 40});
+  AvatarWidget(this.user, {this.size = 40, this.jumpDetail = true});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        children: <Widget>[
-          AppNetWorkImage(
-            src: user.avatarImage.thumbnailUrl,
-            width: size,
-            height: size,
-            borderRadius: BorderRadius.circular(size / 2),
-          ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Builder(builder: (_) {
-              if (user.isVerified) {
-                return Image.asset(
-                  'images/ic_common_verified.png',
-                  width: size / 2.5,
-                  height: size / 2.5,
-                );
-              }
-              return SizedBox();
-            }),
-          ),
-        ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+          return PersonalDetailPage(
+            username: user.username,
+          );
+        }));
+      },
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          children: <Widget>[
+            AppNetWorkImage(
+              src: user.avatarImage.thumbnailUrl,
+              width: size,
+              height: size,
+              borderRadius: BorderRadius.circular(size / 2),
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Builder(builder: (_) {
+                if (user.isVerified) {
+                  return Image.asset(
+                    'images/ic_common_verified.png',
+                    width: size / 2.5,
+                    height: size / 2.5,
+                  );
+                }
+                return SizedBox();
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1349,16 +1370,14 @@ List<TextSpan> _parseUrlsInText(List<UrlsInText> urlsInText, String content) {
   for (UrlsInText text in urlsInText) {
     /// 遍历找出所有的匹配的
 
-    int start = 0;
     RegExp reg = RegExp(RegExp.escape(text.originalUrl));
-    int index = -1;
-    while ((index = content.substring(start).indexOf(reg)) != -1) {
-      indexList.add(index);
-      start = index + 1;
+    final matches = reg.allMatches(content);
+    for (var match in matches) {
+      if (!indexList.contains(match.start)) {
+        indexList.add(match.start);
+      }
     }
   }
-
-  debugPrint("indexList = $indexList");
 
   int cur = 0;
   int indexPos = 0;

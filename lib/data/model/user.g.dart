@@ -24,6 +24,9 @@ UserInfo _$UserInfoFromJson(Map json) {
       json['statsCount'] == null
           ? null
           : StatsCount.fromJson(json['statsCount'] as Map),
+      json['backgroundImage'] == null
+          ? null
+          : Picture.fromJson(json['backgroundImage'] as Map),
       json['id'] as String,
       json['preferences'] == null
           ? null
@@ -35,11 +38,21 @@ UserInfo _$UserInfoFromJson(Map json) {
       json['briefIntro'] as String,
       json['bio'] as String,
       (json['enabledFeatures'] as List)?.map((e) => e as String)?.toList(),
-      json['gender'] as String,
-      json['city'] as String,
-      json['country'] as String,
-      json['province'] as String,
-      json['ref'] as String);
+      json['gender'] as String ?? '',
+      json['zodiac'] as String ?? '',
+      json['industry'] as String ?? '',
+      json['city'] as String ?? '',
+      json['country'] as String ?? '',
+      json['province'] as String ?? '',
+      json['ref'] as String,
+      (json['profileTags'] as List)
+              ?.map((e) => e == null ? null : TrailingIcons.fromJson(e as Map))
+              ?.toList() ??
+          [],
+      (json['medals'] as List)
+              ?.map((e) => e == null ? null : Medals.fromJson(e as Map))
+              ?.toList() ??
+          []);
 }
 
 Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
@@ -52,6 +65,7 @@ Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
       'avatarImage': instance.avatarImage,
       'trailingIcons': instance.trailingIcons,
       'statsCount': instance.statsCount,
+      'backgroundImage': instance.backgroundImage,
       'id': instance.id,
       'preferences': instance.preferences,
       'isBetaUser': instance.isBetaUser,
@@ -62,10 +76,14 @@ Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
       'bio': instance.bio,
       'enabledFeatures': instance.enabledFeatures,
       'gender': instance.gender,
+      'zodiac': instance.zodiac,
+      'industry': instance.industry,
       'city': instance.city,
       'country': instance.country,
       'province': instance.province,
-      'ref': instance.ref
+      'ref': instance.ref,
+      'medals': instance.medals,
+      'profileTags': instance.profileTags
     };
 
 UserAvatar _$UserAvatarFromJson(Map json) {
@@ -165,8 +183,29 @@ Map<String, dynamic> _$BackgroundToJson(Background instance) =>
     <String, dynamic>{'picUrl': instance.picUrl};
 
 TrailingIcons _$TrailingIconsFromJson(Map json) {
-  return TrailingIcons(json['url'] as String, json['picUrl'] as String);
+  return TrailingIcons(
+      json['url'] as String ?? '',
+      json['picUrl'] as String ?? '',
+      json['text'] as String ?? '',
+      json['type'] as String);
 }
 
 Map<String, dynamic> _$TrailingIconsToJson(TrailingIcons instance) =>
-    <String, dynamic>{'url': instance.url, 'picUrl': instance.picUrl};
+    <String, dynamic>{
+      'url': instance.url,
+      'picUrl': instance.picUrl,
+      'text': instance.text,
+      'type': instance.type
+    };
+
+Medals _$MedalsFromJson(Map json) {
+  return Medals(json['picUrl'] as String ?? '', json['url'] as String ?? '',
+      json['name'] as String ?? '', json['gotMedalAt'] as String ?? '');
+}
+
+Map<String, dynamic> _$MedalsToJson(Medals instance) => <String, dynamic>{
+      'picUrl': instance.picUrl,
+      'url': instance.url,
+      'name': instance.name,
+      'gotMedalAt': instance.gotMedalAt
+    };

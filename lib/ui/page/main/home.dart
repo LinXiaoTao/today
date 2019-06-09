@@ -2,7 +2,7 @@ import 'package:today/ui/ui_base.dart';
 import 'package:flutter_easyrefresh/phoenix_header.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:today/ui/page/debug.dart';
-import 'package:today/ui/message.dart';
+import 'package:today/widget/message.dart';
 import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 

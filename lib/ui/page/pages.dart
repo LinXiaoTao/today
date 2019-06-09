@@ -6,3 +6,4 @@ export 'main/mine.dart';
 export 'message/message_detail.dart';
 export 'message/comment_detail.dart';
 export 'webview.dart';
+export 'personal/personal_detail.dart';

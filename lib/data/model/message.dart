@@ -9,6 +9,7 @@ class Message extends Equatable {
   final String id;
 
   ///ORIGINAL_POST
+  /// REPOST
   final String type;
 
   @JsonKey(defaultValue: '')
@@ -53,6 +54,9 @@ class Message extends Equatable {
 
   final List<Comment> attachedComments;
 
+  /// type = 'REPOST'
+  final Message target;
+
   /// MESSAGE_VIEW
   final String viewType;
 
@@ -78,6 +82,7 @@ class Message extends Equatable {
     this.subtitle,
     this.topComment,
     this.attachedComments,
+    this.target,
     this.viewType,
   ) : super([id]);
 
@@ -100,6 +105,11 @@ class UrlsInText {
   factory UrlsInText.fromJson(Map json) => _$UrlsInTextFromJson(json);
 
   Map<String, dynamic> toJson() => _$UrlsInTextToJson(this);
+
+  @override
+  String toString() {
+    return 'UrlsInText{originalUrl: $originalUrl}';
+  }
 }
 
 @JsonSerializable()

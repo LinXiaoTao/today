@@ -2,7 +2,7 @@ import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:intl/intl.dart';
 import 'package:today/ui/ui_base.dart';
-import 'package:today/ui/message.dart';
+import 'package:today/widget/message.dart';
 
 final DateFormat _dateFormat = DateFormat('MM/dd HH:mm');
 
@@ -124,7 +124,8 @@ class _MessageDetailState extends State<MessageDetailPage>
                                                       'images/ic_personaltab_activity_add_location.png'),
                                                   SizedBox(
                                                     width: AppDimensions
-                                                        .smallPadding,
+                                                            .smallPadding /
+                                                        2,
                                                   ),
                                                   Expanded(
                                                     child: Text(
@@ -196,7 +197,12 @@ class _MessageDetailState extends State<MessageDetailPage>
                                 color: AppColors.dividerGrey,
                               ),
                             ),
-                            CommentWidget(bodyItem: message),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: AppDimensions.primaryPadding,
+                                  vertical: 15),
+                              child: CommentWidget(bodyItem: message),
+                            ),
                           ],
                         ),
                       ),
