@@ -124,6 +124,16 @@ class ApiRequest {
     });
   }
 
+  /// 官方消息
+  static Future<Message> officialMessages(
+    String id,
+  ) {
+    return _dio.get('/1.0/officialMessages/get',
+        queryParameters: {'id': id}).then((value) {
+      return Message.fromJson(value.data['data']);
+    });
+  }
+
   /// 相关消息
   static Future<List<Message>> listRelated(String id, {String pageName}) {
     Map<String, dynamic> queryParameters = {'id': id};
@@ -133,6 +143,23 @@ class ApiRequest {
 
     return _dio
         .get('/1.0/originalPosts/listRelated', queryParameters: queryParameters)
+        .then((value) {
+      return (value.data['data'] as List).map((item) {
+        return Message.fromJson(item);
+      }).toList();
+    });
+  }
+
+  static Future<List<Message>> officialListRelated(String id,
+      {String pageName}) {
+    Map<String, dynamic> queryParameters = {'id': id};
+    if (pageName != null) {
+      queryParameters['pageName'] = pageName;
+    }
+
+    return _dio
+        .get('/1.0/officialMessages/listRelated',
+            queryParameters: queryParameters)
         .then((value) {
       return (value.data['data'] as List).map((item) {
         return Message.fromJson(item);
@@ -244,7 +271,7 @@ class ApiRequest {
       (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
           (client) {
         client.findProxy = (url) {
-          return "PROXY 192.168.2.102:8888";
+          return "PROXY 192.168.2.101:8888";
         };
         //抓Https包设置
         client.badCertificateCallback =

@@ -300,7 +300,7 @@ class _RealRichRenderParagraph extends RenderParagraph {
     final Canvas canvas = context.canvas;
     final Rect bounds = offset & size;
 
-//    debugPrint("_RealRichRenderParagraph offset=$offset bounds=$bounds");
+    debugPrint("_RealRichRenderParagraph offset=$offset bounds=$bounds");
 
     canvas.save();
 

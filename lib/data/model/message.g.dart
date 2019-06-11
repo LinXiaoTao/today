@@ -11,15 +11,16 @@ Message _$MessageFromJson(Map json) {
       json['id'] as String,
       json['type'] as String,
       json['content'] as String ?? '',
+      json['title'] as String ?? '',
       (json['urlsInText'] as List)
               ?.map((e) => e == null ? null : UrlsInText.fromJson(e as Map))
               ?.toList() ??
           [],
-      json['status'] as String,
+      json['status'] as String ?? '',
       json['isCommentForbidden'] as bool,
-      json['likeCount'] as int,
-      json['commentCount'] as int,
-      json['repostCount'] as int,
+      json['likeCount'] as int ?? 0,
+      json['commentCount'] as int ?? 0,
+      json['repostCount'] as int ?? 0,
       json['shareCount'] as int,
       json['topic'] == null ? null : Topic.fromJson(json['topic'] as Map),
       json['poi'] == null ? null : Poi.fromJson(json['poi'] as Map),
@@ -42,13 +43,23 @@ Message _$MessageFromJson(Map json) {
           ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
           ?.toList(),
       json['target'] == null ? null : Message.fromJson(json['target'] as Map),
-      json['viewType'] as String);
+      json['viewType'] as String,
+      json['questionId'] as String ?? 'questionId',
+      json['question'] == null
+          ? null
+          : Message.fromJson(json['question'] as Map),
+      json['answerCount'] as int ?? 0,
+      json['richtextContent'] == null
+          ? null
+          : RichTextContent.fromJson(json['richtextContent'] as Map),
+      json['upVoteCount'] as int ?? 0);
 }
 
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
       'content': instance.content,
+      'title': instance.title,
       'urlsInText': instance.urlsInText,
       'status': instance.status,
       'isCommentForbidden': instance.isCommentForbidden,
@@ -68,7 +79,12 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
       'topComment': instance.topComment,
       'attachedComments': instance.attachedComments,
       'target': instance.target,
-      'viewType': instance.viewType
+      'viewType': instance.viewType,
+      'questionId': instance.questionId,
+      'question': instance.question,
+      'richtextContent': instance.richtextContent,
+      'answerCount': instance.answerCount,
+      'upVoteCount': instance.upVoteCount
     };
 
 UrlsInText _$UrlsInTextFromJson(Map json) {
@@ -117,3 +133,20 @@ Map<String, dynamic> _$AudioToJson(Audio instance) => <String, dynamic>{
       'title': instance.title,
       'author': instance.author
     };
+
+RichTextContent _$RichTextContentFromJson(Map json) {
+  return RichTextContent((json['blocks'] as List)
+          ?.map((e) => e == null ? null : Block.fromJson(e as Map))
+          ?.toList() ??
+      []);
+}
+
+Map<String, dynamic> _$RichTextContentToJson(RichTextContent instance) =>
+    <String, dynamic>{'blocks': instance.blocks};
+
+Block _$BlockFromJson(Map json) {
+  return Block(json['text'] as String);
+}
+
+Map<String, dynamic> _$BlockToJson(Block instance) =>
+    <String, dynamic>{'text': instance.text};

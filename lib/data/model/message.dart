@@ -4,29 +4,47 @@ import 'package:equatable/equatable.dart';
 
 part 'message.g.dart';
 
+enum MessageType {
+  ORIGINAL_POST,
+  RE_POST,
+  OFFICIAL_MESSAGE,
+  ANSWER,
+  QUESTION,
+}
+
+enum MessageStatus {
+  NORMAL,
+  DELETED,
+}
+
 @JsonSerializable()
 class Message extends Equatable {
   final String id;
 
-  ///ORIGINAL_POST
-  /// REPOST
   final String type;
 
   @JsonKey(defaultValue: '')
   final String content;
 
+  @JsonKey(defaultValue: '')
+  final String title;
+
   @JsonKey(defaultValue: [])
   final List<UrlsInText> urlsInText;
 
-  /// NORMAL
+  /// NORMAL,DELETED
+  @JsonKey(defaultValue: '')
   final String status;
 
   final bool isCommentForbidden;
 
+  @JsonKey(defaultValue: 0)
   final int likeCount;
 
+  @JsonKey(defaultValue: 0)
   final int commentCount;
 
+  @JsonKey(defaultValue: 0)
   final int repostCount;
 
   final int shareCount;
@@ -60,10 +78,24 @@ class Message extends Equatable {
   /// MESSAGE_VIEW
   final String viewType;
 
+  @JsonKey(defaultValue: 'questionId')
+  final String questionId;
+
+  final Message question;
+
+  final RichTextContent richtextContent;
+
+  @JsonKey(defaultValue: 0)
+  final int answerCount;
+
+  @JsonKey(defaultValue: 0)
+  final int upVoteCount;
+
   Message(
     this.id,
     this.type,
     this.content,
+    this.title,
     this.urlsInText,
     this.status,
     this.isCommentForbidden,
@@ -84,11 +116,38 @@ class Message extends Equatable {
     this.attachedComments,
     this.target,
     this.viewType,
+    this.questionId,
+    this.question,
+    this.answerCount,
+    this.richtextContent,
+    this.upVoteCount,
   ) : super([id]);
 
   factory Message.fromJson(Map json) => _$MessageFromJson(json);
 
   Map<String, dynamic> toJson() => _$MessageToJson(this);
+
+  MessageType get messageType {
+    if (type == 'ORIGINAL_POST') {
+      return MessageType.ORIGINAL_POST;
+    } else if (type == 'REPOST') {
+      return MessageType.RE_POST;
+    } else if (type == 'OFFICIAL_MESSAGE') {
+      return MessageType.OFFICIAL_MESSAGE;
+    } else if (type == 'ANSWER') {
+      return MessageType.ANSWER;
+    } else if (type == 'QUESTION') {
+      return MessageType.QUESTION;
+    }
+    return MessageType.ORIGINAL_POST;
+  }
+
+  MessageStatus get messageStatus {
+    if (status == 'DELETED') {
+      return MessageStatus.DELETED;
+    }
+    return MessageStatus.NORMAL;
+  }
 }
 
 @JsonSerializable()
@@ -152,4 +211,27 @@ class Audio {
   String toString() {
     return 'Audio{type: $type, image: $image, title: $title, author: $author}';
   }
+}
+
+@JsonSerializable()
+class RichTextContent {
+  @JsonKey(defaultValue: [])
+  final List<Block> blocks;
+
+  RichTextContent(this.blocks);
+
+  factory RichTextContent.fromJson(Map json) => _$RichTextContentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RichTextContentToJson(this);
+}
+
+@JsonSerializable()
+class Block {
+  final String text;
+
+  Block(this.text);
+
+  factory Block.fromJson(Map json) => _$BlockFromJson(json);
+
+  Map<String, dynamic> toJson() => _$BlockToJson(this);
 }

@@ -141,11 +141,19 @@ class MessageItem extends StatelessWidget {
         color: Colors.white,
         child: InkWell(
           onTap: () {
+            String ref;
+            if (bodyItem.user != null) {
+              ref = bodyItem.user.ref;
+            } else if (bodyItem.topic != null) {
+              ref = bodyItem.topic.ref;
+            }
+
             Navigator.of(context).push(MaterialPageRoute(builder: (context) {
               return MessageDetailPage(
-                id: item.id,
-                ref: bodyItem.user.ref,
+                id: bodyItem.id,
+                ref: ref,
                 pageName: 'tab_recommend',
+                type: bodyItem.messageType,
               );
             }));
           },
@@ -215,6 +223,12 @@ class MessageItem extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         RichTextWidget(bodyItem),
+                        Builder(builder: (_) {
+                          if (bodyItem.content.isEmpty) return SizedBox();
+                          return SizedBox(
+                            height: AppDimensions.smallPadding,
+                          );
+                        }),
                         MessageBodyWidget(bodyItem),
                         LinkInfoWidget(bodyItem),
                         SizedBox(
@@ -282,12 +296,19 @@ class MessageItem extends StatelessWidget {
                         color: Colors.grey[50],
                         child: InkWell(
                           onTap: () {
+                            String ref;
+                            if (bodyItem.user != null) {
+                              ref = bodyItem.user.ref;
+                            } else if (bodyItem.topic != null) {
+                              ref = bodyItem.topic.ref;
+                            }
                             Navigator.of(context)
                                 .push(MaterialPageRoute(builder: (_) {
                               return MessageDetailPage(
-                                id: item.id,
+                                id: bodyItem.id,
                                 pageName: 'tab_recommend',
-                                ref: bodyItem.user.ref,
+                                ref: ref,
+                                type: bodyItem.messageType,
                               );
                             }));
                           },
@@ -344,7 +365,7 @@ class MessageItem extends StatelessWidget {
                                             TextStyle(color: AppColors.blue)));
                                   }
 
-                                  child.addAll(_parseUrlsInText(
+                                  child.addAll(parseUrlsInText(
                                       topComment.urlsInText,
                                       topComment.content));
 
@@ -592,12 +613,33 @@ class CommentWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        Image.asset('images/ic_messages_like_unselected.png'),
-        SizedBox(
-          width: 4,
-        ),
-        Text(bodyItem.likeCount.toString(),
-            style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
+        Builder(builder: (_) {
+          if (bodyItem.messageType == MessageType.ANSWER) {
+            return Row(
+              children: <Widget>[
+                Image.asset('images/ic_messages_vote.png'),
+                SizedBox(
+                  width: 4,
+                ),
+                Text(bodyItem.upVoteCount.toString(),
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.tipsTextColor)),
+              ],
+            );
+          }
+
+          return Row(
+            children: <Widget>[
+              Image.asset('images/ic_messages_like_unselected.png'),
+              SizedBox(
+                width: 4,
+              ),
+              Text(bodyItem.likeCount.toString(),
+                  style:
+                      TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
+            ],
+          );
+        }),
         SizedBox(
           width: 80,
         ),
@@ -633,111 +675,70 @@ class RichTextWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return (bodyItem.content.trim().isEmpty
         ? SizedBox()
-        : Padding(
-            padding: EdgeInsets.only(bottom: AppDimensions.primaryPadding),
-            child: LayoutBuilder(builder: (context, layout) {
-              TextSpan content;
-              if (bodyItem.urlsInText.isNotEmpty) {
-                List<TextSpan> child = [];
+        : LayoutBuilder(builder: (context, layout) {
+            TextSpan content;
+            if (bodyItem.urlsInText.isNotEmpty) {
+              List<TextSpan> child =
+                  parseUrlsInText(bodyItem.urlsInText, bodyItem.content);
 
-                List<int> indexList = [];
-
-                for (UrlsInText text in bodyItem.urlsInText) {
-                  /// 遍历找出所有的匹配的
-                  RegExp reg = RegExp(RegExp.escape(text.originalUrl));
-                  final matches = reg.allMatches(bodyItem.content);
-                  for (var match in matches) {
-                    if (!indexList.contains(match.start)) {
-                      indexList.add(match.start);
-                    }
-                  }
-                }
-
-                int cur = 0;
-                int indexPos = 0;
-                while (indexPos < indexList.length) {
-                  if (indexList[indexPos] > cur) {
-                    child.add(TextSpan(
-                        text: bodyItem.content
-                            .substring(cur, indexList[indexPos])));
-                    cur = indexList[indexPos];
-                  } else {
-                    int startIndex = indexList[indexPos];
-                    int endIndex = startIndex +
-                        bodyItem.urlsInText[indexPos].originalUrl.length;
-
-                    child.add(TextSpan(
-                        text: bodyItem.urlsInText[indexPos].title,
-                        style: TextStyle(color: AppColors.blue)));
-                    cur = endIndex;
-                    indexPos++;
-                  }
-                }
-
-                if (cur < bodyItem.content.length) {
-                  child.add(TextSpan(
-                      text: bodyItem.content
-                          .substring(cur, bodyItem.content.length)));
-                }
-
-                content = TextSpan(
-                    children: child,
-                    style: TextStyle(
+              content = TextSpan(
+                  children: child,
+                  style: TextStyle(
+                    color: AppColors.primaryTextColor,
+                    fontSize: 15,
+                    letterSpacing: 0.5,
+                  ));
+            } else {
+              content = TextSpan(
+                  text: bodyItem.content,
+                  style: TextStyle(
                       color: AppColors.primaryTextColor,
                       fontSize: 15,
-                      letterSpacing: 0.5,
-                    ));
-              } else {
-                content = TextSpan(
-                    text: bodyItem.content,
-                    style: TextStyle(
-                        color: AppColors.primaryTextColor,
-                        fontSize: 15,
-                        letterSpacing: 0.5));
-              }
+                      letterSpacing: 0.5));
+            }
 
-              var painter = TextPainter(
-                text: content,
-                textDirection: TextDirection.ltr,
-              );
+            var painter = TextPainter(
+              text: content,
+              textDirection: TextDirection.ltr,
+            );
 
-              painter.layout(maxWidth: layout.maxWidth);
+            painter.layout(maxWidth: layout.maxWidth);
 
-              final textHeight = painter
-                  .computeDistanceToActualBaseline(TextBaseline.ideographic);
+            final textHeight = painter
+                .computeDistanceToActualBaseline(TextBaseline.ideographic);
 
-              var textLine = painter.height / textHeight;
+            var textLine = painter.height / textHeight;
 
 //              debugPrint("text height = ${painter.height}; line = $textLine");
 
-              if (!showFullContent && textLine > 8) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text.rich(
-                      content,
-                      maxLines: 5,
-                      overflow: TextOverflow.ellipsis,
+            if (!showFullContent && textLine > 8) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text.rich(
+                    content,
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(
+                    height: AppDimensions.smallPadding,
+                  ),
+                  Text(
+                    '全文',
+                    style: TextStyle(
+                      color: AppColors.tipsTextColor,
+                      fontSize: 16,
                     ),
-                    SizedBox(
-                      height: AppDimensions.smallPadding,
-                    ),
-                    Text(
-                      '全文',
-                      style: TextStyle(
-                        color: AppColors.tipsTextColor,
-                        fontSize: 16,
-                      ),
-                    )
-                  ],
-                );
-              }
-
-              return Text.rich(
-                content,
+                  )
+                ],
               );
-            })));
+            }
+
+            return Text.rich(
+              content,
+            );
+          }));
   }
 }
 
@@ -861,8 +862,9 @@ class MessageBodyWidget extends StatelessWidget {
 }
 
 class VideoPreviewWidget extends StatelessWidget {
-  const VideoPreviewWidget(
-      {Key key, @required this.video, @required this.message})
+  final _numberFormat = intl.NumberFormat('00');
+
+  VideoPreviewWidget({Key key, @required this.video, @required this.message})
       : super(key: key);
 
   final Video video;
@@ -871,6 +873,18 @@ class VideoPreviewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
+      var width = constraints.maxWidth;
+      var height = constraints.maxWidth.toDouble() / 2;
+
+      if (video.width > 0 && video.height > 0) {
+        double maxWidth = MediaQuery.of(context).size.width;
+        final measureSize = ImageUtil.measureImageSize(
+            srcSizes: {'w': video.width, 'h': video.height},
+            maxSizes: {'w': maxWidth * 2 / 3, 'h': maxWidth / 2});
+        width = measureSize['w'];
+        height = measureSize['h'];
+      }
+
       return GestureDetector(
         onTap: () {
           Navigator.of(context).push(MaterialPageRoute(builder: (_) {
@@ -878,26 +892,47 @@ class VideoPreviewWidget extends StatelessWidget {
           }));
         },
         child: SizedBox(
-          width: constraints.maxWidth,
-          height: constraints.maxWidth.toDouble() / 2,
+          width: width,
+          height: height,
           child: Stack(
             children: <Widget>[
               AppNetWorkImage(
-                src: '${video.image.thumbnailUrl}.jpg',
+                src: '${video.image.thumbnailUrl}.${video.image.format}',
                 fit: BoxFit.fitWidth,
                 width: constraints.maxWidth,
                 alignment: Alignment.centerLeft,
                 borderRadius: BorderRadius.circular(5),
+                colorFilter:
+                    ColorFilter.mode(Colors.grey[300], BlendMode.multiply),
               ),
               Align(
                 child:
                     Image.asset("images/ic_mediaplayer_videoplayer_play.png"),
-              )
+              ),
+              Builder(builder: (_) {
+                if (video.duration > 0) {
+                  return Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: EdgeInsets.all(AppDimensions.primaryPadding - 2),
+                      child: Text(
+                        _formatDuration(Duration(milliseconds: video.duration)),
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox();
+              }),
             ],
           ),
         ),
       );
     });
+  }
+
+  _formatDuration(Duration duration) {
+    return '${_numberFormat.format(duration.inMinutes)}:${_numberFormat.format(duration.inSeconds - duration.inMinutes * Duration.secondsPerMinute)}';
   }
 }
 
@@ -971,12 +1006,14 @@ class ScreenNameWidget extends StatelessWidget {
       {Key key,
       @required this.user,
       this.textColor = AppColors.primaryTextColor,
-      this.fontSize = 14})
+      this.fontSize = 14,
+      this.showVerify = true})
       : super(key: key);
 
   final UserInfo user;
   final Color textColor;
   final double fontSize;
+  final bool showVerify;
 
   @override
   Widget build(BuildContext context) {
@@ -996,7 +1033,7 @@ class ScreenNameWidget extends StatelessWidget {
           ),
           Builder(builder: (_) {
             /// todo 优化
-            if (user.isVerified) {
+            if (user.isVerified && showVerify) {
               return LimitedBox(
                 maxWidth: 120,
                 child: Text(
@@ -1171,7 +1208,7 @@ class CommentItemWidget extends StatelessWidget {
                                   style: TextStyle(color: AppColors.blue)));
                             }
 
-                            child.addAll(_parseUrlsInText(
+                            child.addAll(parseUrlsInText(
                                 comment.urlsInText, comment.content));
 
                             return Text.rich(TextSpan(
@@ -1222,7 +1259,7 @@ class CommentItemWidget extends StatelessWidget {
 
                     if (data.content.isNotEmpty) {
                       child.addAll(
-                          _parseUrlsInText(data.urlsInText, data.content));
+                          parseUrlsInText(data.urlsInText, data.content));
                     }
 
                     if (data.pictures.isNotEmpty) {
@@ -1242,7 +1279,7 @@ class CommentItemWidget extends StatelessWidget {
                           imageHeight: 15,
                           color: AppColors.blue,
                           margin: EdgeInsets.only(
-                              right: AppDimensions.smallPadding)));
+                              right: AppDimensions.smallPadding / 2)));
 
                       child.add(TextSpan(
                         text: '查看图片',
@@ -1362,7 +1399,217 @@ class AvatarWidget extends StatelessWidget {
   }
 }
 
-List<TextSpan> _parseUrlsInText(List<UrlsInText> urlsInText, String content) {
+/// 转发内容的组件，包括问题等
+class RePostWidget extends StatelessWidget {
+  final Message message;
+  final String pageName;
+
+  RePostWidget(this.message, {this.pageName = 'personal_page'});
+
+  static hasData(Message message) {
+    return (message.messageType == MessageType.RE_POST &&
+            message.target != null) ||
+        (message.messageType == MessageType.ANSWER && message.question != null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (hasData(message)) {
+      Message target;
+
+      String content = '';
+
+      if (message.messageType == MessageType.RE_POST) {
+        target = message.target;
+        content = target.content;
+      }
+
+      if (message.messageType == MessageType.ANSWER) {
+        target = message.question;
+        content = target.title;
+      }
+
+      if (target.messageStatus == MessageStatus.DELETED) {
+        /// 已经被删除
+        return Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              color: AppColors.darkGrey),
+          height: 65,
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Image.asset('images/ic_personaltab_activity_message_error.png'),
+                SizedBox(
+                  width: AppDimensions.smallPadding,
+                ),
+                Text(
+                  '该消息已经被删除',
+                  style: TextStyle(color: AppColors.normalTextColor),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      String picUrl = '';
+      String picType = 'img';
+
+      if (target.video != null) {
+        picType = 'video';
+        picUrl =
+            '${target.video.image.thumbnailUrl}.${target.video.image.format}';
+      } else if (target.pictures.isNotEmpty) {
+        picUrl = target.pictures.first.thumbnailUrl;
+      } else if (target.user != null) {
+        picUrl = target.user.avatarImage.thumbnailUrl;
+      } else if (target.topic != null) {
+        picUrl = target.topic.squarePicture.thumbnailUrl;
+      }
+
+      if (target.messageType == MessageType.QUESTION) {
+        picType = 'question';
+      }
+
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          String ref;
+          if (target.user != null) {
+            ref = target.user.ref;
+          } else if (target.topic != null) {
+            ref = target.topic.ref;
+          }
+
+          if (message.messageType == MessageType.ANSWER) return;
+
+          /// todo 问题详情
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+            return MessageDetailPage(
+              id: target.id,
+              ref: ref,
+              pageName: pageName,
+              type: target.messageType,
+            );
+          }));
+        },
+        child: Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              color: AppColors.darkGrey),
+          padding: EdgeInsets.all(AppDimensions.primaryPadding - 2),
+          child: Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      AppNetWorkImage(
+                        src: picUrl,
+                        width: 45,
+                        height: 45,
+                      ),
+                      Builder(builder: (_) {
+                        if (picType == 'video') {
+                          return Image.asset(
+                              'images/ic_personaltab_activity_video_play.png');
+                        } else if (picType == 'question') {
+                          return Image.asset(
+                              'images/ic_personaltab_activity_qa.png');
+                        }
+                        return SizedBox();
+                      }),
+                    ],
+                  ),
+                  SizedBox(
+                    width: AppDimensions.primaryPadding,
+                  ),
+                  Expanded(
+                    child: Text(
+                      (target.user == null
+                              ? ''
+                              : '${target.user.screenName}：') +
+                          '$content',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.primaryTextColor),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: AppDimensions.smallPadding,
+              ),
+              Builder(builder: (_) {
+                if (target.topic == null) return SizedBox();
+
+                return Column(
+                  children: <Widget>[
+                    Divider(
+                      height: 1,
+                      color: AppColors.dividerGrey,
+                    ),
+                    SizedBox(
+                      height: AppDimensions.smallPadding,
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        target.topic.content,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 10, color: AppColors.tipsTextColor),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
+        ),
+      );
+    }
+    return SizedBox();
+  }
+}
+
+class AnswerWidget extends StatelessWidget {
+  final Message message;
+
+  AnswerWidget(this.message);
+
+  static hasData(Message message) {
+    return message.messageType == MessageType.ANSWER &&
+        message.richtextContent != null &&
+        message.richtextContent.blocks.isNotEmpty;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (hasData(message)) {
+      List<Block> blocks = message.richtextContent.blocks;
+
+      final List<TextSpan> child = [];
+
+      for (var block in blocks) {
+        child.add(TextSpan(text: block.text));
+      }
+
+      return RealRichText(
+        child,
+        style: TextStyle(color: AppColors.primaryTextColor),
+      );
+    }
+
+    return SizedBox();
+  }
+}
+
+List<TextSpan> parseUrlsInText(List<UrlsInText> urlsInText, String content) {
   List<TextSpan> child = [];
 
   List<int> indexList = [];

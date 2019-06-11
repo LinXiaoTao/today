@@ -13,9 +13,15 @@ class MessageRelatedBloc
     MessageRelatedEvent event,
   ) async* {
     if (event is FetchMessageRelatedListEvent) {
-      yield LoadedMessageRelatedListState(
-          messageList:
-              await ApiRequest.listRelated(event.id, pageName: event.pageName));
+      if (event.type == MessageType.ORIGINAL_POST) {
+        yield LoadedMessageRelatedListState(
+            messageList: await ApiRequest.listRelated(event.id,
+                pageName: event.pageName));
+      } else {
+        yield LoadedMessageRelatedListState(
+            messageList: await ApiRequest.officialListRelated(event.id,
+                pageName: event.pageName));
+      }
     }
   }
 }

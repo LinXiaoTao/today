@@ -51,7 +51,7 @@ class _VideoListPageState extends State<VideoListPage>
                     }
                     _prePage = _pageController.page.toInt();
 
-                    /// 暂时没想到其他更好的方法
+                    /// todo 暂时没想到其他更好的方法
                     Future.delayed(Duration(milliseconds: 300)).then((_) {
                       _autoPlay();
                     });
@@ -90,8 +90,13 @@ class _VideoListPageState extends State<VideoListPage>
                               stream: _playerKey.currentState.loadMediaStream,
                               builder: (_, snapshot) {
                                 if (snapshot.hasData) {
-                                  if (snapshot.data.position.inSeconds >=
-                                      snapshot.data.duration.inSeconds) {
+                                  final duration =
+                                      snapshot.data.duration ?? Duration();
+                                  final position =
+                                      snapshot.data.position ?? Duration();
+
+                                  if (position.inSeconds >=
+                                      duration.inSeconds) {
                                     return GestureDetector(
                                       onTap: () {
                                         _playerKey.currentState.play();
@@ -139,7 +144,12 @@ class _TopWidget extends StatelessWidget {
       onTap: () {
         Navigator.of(context).pop();
       },
-      child: Padding(
+      child: Container(
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [Colors.black45, Colors.transparent],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter)),
         padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
         child: SizedBox(
           height: 60,
@@ -243,8 +253,11 @@ class _BottomState extends State<_BottomWidget> {
                     int cur = 0;
                     int max = 0;
                     if (snapshot.hasData) {
-                      cur = snapshot.data.position.inSeconds;
-                      max = snapshot.data.duration.inSeconds;
+                      final duration = snapshot.data.duration ?? Duration();
+                      final position = snapshot.data.position ?? Duration();
+
+                      cur = position.inSeconds;
+                      max = duration.inSeconds;
                     }
                     return Slider.adaptive(
                       value: cur.toDouble(),
@@ -282,74 +295,87 @@ class _BottomState extends State<_BottomWidget> {
             ],
           ),
         ),
-        SizedBox(
-          height: AppDimensions.primaryPadding * 2,
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: AppDimensions.primaryPadding * 1.5),
-          child: Text(
-            widget.item.content,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        SizedBox(
-          height: AppDimensions.primaryPadding * 2.5,
-        ),
-        SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+        Container(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+                  colors: [Colors.black45, Colors.transparent],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Column(
-                children: <Widget>[
-                  Image.asset('images/ic_messages_like_unselected.png'),
-                  SizedBox(
-                    height: AppDimensions.smallPadding,
-                  ),
-                  Text(
-                    '${widget.item.likeCount}',
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                ],
+              SizedBox(
+                height: AppDimensions.primaryPadding * 2,
               ),
-              Column(
-                children: <Widget>[
-                  Image.asset('images/ic_messages_comment.png'),
-                  SizedBox(
-                    height: AppDimensions.smallPadding,
-                  ),
-                  Text(
-                    '${widget.item.commentCount}',
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                ],
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppDimensions.primaryPadding * 1.5),
+                child: Text(
+                  widget.item.content,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
-              Column(
-                children: <Widget>[
-                  Image.asset('images/ic_messages_collect_unselected.png'),
-                  SizedBox(
-                    height: AppDimensions.smallPadding,
-                  ),
-                  Text(
-                    '收藏',
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                ],
+              SizedBox(
+                height: AppDimensions.primaryPadding * 2.5,
               ),
-              Column(
-                children: <Widget>[
-                  Image.asset('images/ic_messages_share.png'),
-                  SizedBox(
-                    height: AppDimensions.smallPadding,
-                  ),
-                  Text(
-                    '${widget.item.shareCount}',
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                ],
+              SizedBox(
+                height: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    Column(
+                      children: <Widget>[
+                        Image.asset('images/ic_messages_like_unselected.png'),
+                        SizedBox(
+                          height: AppDimensions.smallPadding,
+                        ),
+                        Text(
+                          '${widget.item.likeCount}',
+                          style: TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: <Widget>[
+                        Image.asset('images/ic_messages_comment.png'),
+                        SizedBox(
+                          height: AppDimensions.smallPadding,
+                        ),
+                        Text(
+                          '${widget.item.commentCount}',
+                          style: TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: <Widget>[
+                        Image.asset(
+                            'images/ic_messages_collect_unselected.png'),
+                        SizedBox(
+                          height: AppDimensions.smallPadding,
+                        ),
+                        Text(
+                          '收藏',
+                          style: TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: <Widget>[
+                        Image.asset('images/ic_messages_share.png'),
+                        SizedBox(
+                          height: AppDimensions.smallPadding,
+                        ),
+                        Text(
+                          '${widget.item.shareCount}',
+                          style: TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

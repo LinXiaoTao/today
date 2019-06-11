@@ -5,11 +5,15 @@ part 'video.g.dart';
 
 @JsonSerializable()
 class Video {
+  @JsonKey(defaultValue: '')
   final String type;
   final Picture image;
+  @JsonKey(defaultValue: 0)
   final int duration;
-  final int width;
-  final int height;
+  @JsonKey(defaultValue: 0)
+  final double width;
+  @JsonKey(defaultValue: 0)
+  final double height;
 
   Video(this.type, this.image, this.duration, this.width, this.height);
 

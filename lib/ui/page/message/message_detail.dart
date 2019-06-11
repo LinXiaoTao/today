@@ -11,8 +11,13 @@ class MessageDetailPage extends StatefulWidget {
   final String id;
   final String ref;
   final String pageName;
+  final MessageType type;
 
-  MessageDetailPage({@required this.id, this.ref, this.pageName});
+  MessageDetailPage(
+      {@required this.id,
+      this.ref = '',
+      this.pageName,
+      this.type = MessageType.ORIGINAL_POST});
 
   @override
   State<StatefulWidget> createState() {
@@ -32,9 +37,10 @@ class _MessageDetailState extends State<MessageDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _detailBloc.dispatch(FetchMessageDetailEvent(widget.id, ref: widget.ref));
-    _relatedBloc.dispatch(
-        FetchMessageRelatedListEvent(widget.id, pageName: widget.pageName));
+    _detailBloc.dispatch(
+        FetchMessageDetailEvent(widget.id, ref: widget.ref, type: widget.type));
+    _relatedBloc.dispatch(FetchMessageRelatedListEvent(widget.id,
+        pageName: widget.pageName, type: widget.type));
   }
 
   @override
@@ -58,10 +64,10 @@ class _MessageDetailState extends State<MessageDetailPage>
                 ),
                 autoLoad: true,
                 onRefresh: () {
-                  _detailBloc.dispatch(
-                      FetchMessageDetailEvent(widget.id, ref: widget.ref));
+                  _detailBloc.dispatch(FetchMessageDetailEvent(widget.id,
+                      ref: widget.ref, type: widget.type));
                   _relatedBloc.dispatch(FetchMessageRelatedListEvent(widget.id,
-                      pageName: widget.pageName));
+                      pageName: widget.pageName, type: widget.type));
                   _commentListKey.currentState.refreshData();
                 },
                 loadMore: () {
@@ -86,19 +92,39 @@ class _MessageDetailState extends State<MessageDetailPage>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                AvatarWidget(user),
-                                SizedBox(
-                                  width: AppDimensions.primaryPadding,
-                                ),
+                                Builder(builder: (_) {
+                                  if (user != null) {
+                                    return Row(
+                                      children: <Widget>[
+                                        AvatarWidget(user),
+                                        SizedBox(
+                                          width: AppDimensions.primaryPadding,
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                  return SizedBox();
+                                }),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: <Widget>[
-                                      ScreenNameWidget(user: user),
-                                      SizedBox(
-                                        height: AppDimensions.smallPadding,
-                                      ),
+                                      Builder(builder: (_) {
+                                        if (user != null) {
+                                          return Column(
+                                            children: <Widget>[
+                                              ScreenNameWidget(user: user),
+                                              SizedBox(
+                                                height:
+                                                    AppDimensions.smallPadding,
+                                              ),
+                                            ],
+                                          );
+                                        }
+
+                                        return SizedBox();
+                                      }),
                                       Row(
                                         children: <Widget>[
                                           Text(
@@ -174,12 +200,18 @@ class _MessageDetailState extends State<MessageDetailPage>
                               ],
                             ),
                             SizedBox(
-                              height: AppDimensions.smallPadding,
+                              height: AppDimensions.primaryPadding,
                             ),
                             RichTextWidget(
                               message,
                               showFullContent: true,
                             ),
+                            Builder(builder: (_) {
+                              if (message.content.isEmpty) return SizedBox();
+                              return SizedBox(
+                                height: AppDimensions.smallPadding,
+                              );
+                            }),
                             MessageBodyWidget(message),
                             LinkInfoWidget(message),
                             SizedBox(
@@ -189,13 +221,10 @@ class _MessageDetailState extends State<MessageDetailPage>
                             SizedBox(
                               height: AppDimensions.primaryPadding,
                             ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: AppDimensions.primaryPadding),
-                              child: Divider(
-                                height: 1,
-                                color: AppColors.dividerGrey,
-                              ),
+                            Divider(
+                              indent: AppDimensions.primaryPadding,
+                              height: 1,
+                              color: AppColors.dividerGrey,
                             ),
                             Padding(
                               padding: EdgeInsets.symmetric(
@@ -342,8 +371,7 @@ class _RelatedWidget extends StatelessWidget {
                         children: <Widget>[
                           Builder(
                             builder: (_) {
-                              String imgUrl =
-                                  item.user.avatarImage.thumbnailUrl;
+                              String imgUrl = '';
 
                               if (item.video != null) {
                                 imgUrl = item.video.image.thumbnailUrl;
@@ -351,6 +379,8 @@ class _RelatedWidget extends StatelessWidget {
                                 imgUrl = item.pictures.first.thumbnailUrl;
                               } else if (item.linkInfo != null) {
                                 imgUrl = item.linkInfo.pictureUrl;
+                              } else if (item.user != null) {
+                                imgUrl = item.user.avatarImage.thumbnailUrl;
                               }
 
                               if (imgUrl.isEmpty) {
