@@ -30,7 +30,8 @@ Shortcut _$ShortcutFromJson(Map json) {
       json['content'] as String,
       json['url'] as String,
       json['picUrl'] as String,
-      json['style'] as String ?? '');
+      json['style'] as String ?? '',
+      json['tag'] as String ?? '');
 }
 
 Map<String, dynamic> _$ShortcutToJson(Shortcut instance) => <String, dynamic>{
@@ -40,5 +41,6 @@ Map<String, dynamic> _$ShortcutToJson(Shortcut instance) => <String, dynamic>{
       'content': instance.content,
       'url': instance.url,
       'picUrl': instance.picUrl,
-      'style': instance.style
+      'style': instance.style,
+      'tag': instance.tag
     };

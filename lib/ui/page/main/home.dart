@@ -1,3 +1,4 @@
+import 'package:today/ui/page/topic/topic_list.dart';
 import 'package:today/ui/ui_base.dart';
 import 'package:flutter_easyrefresh/phoenix_header.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -246,6 +247,8 @@ class _ShortcutsWidget extends StatelessWidget {
           List<Widget> headWidgetList =
               shortcutsData.shortcuts.map<Widget>((headItem) {
             Widget contentWidget;
+            Widget tagWidget = SizedBox();
+
             if (headItem.style == 'YELLOW') {
               contentWidget = Container(
                 padding: EdgeInsets.all(2),
@@ -259,6 +262,17 @@ class _ShortcutsWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
               );
+
+              if (headItem.tag.isNotEmpty) {
+                tagWidget = Container(
+                  width: 35,
+                  padding: EdgeInsets.symmetric(vertical: 1),
+                  decoration: BoxDecoration(
+                      color: AppColors.yellow,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Center(child: Text(headItem.tag)),
+                );
+              }
             } else if (headItem.style == 'DOTTED') {
               contentWidget = DottedBorder(
                 child: AppNetWorkImage(
@@ -284,33 +298,63 @@ class _ShortcutsWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
               );
+
+              if (headItem.tag.isNotEmpty) {
+                tagWidget = Container(
+                  width: 50,
+                  height: 30,
+                  decoration: BoxDecoration(
+                      color: AppColors.dividerGrey,
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Text(headItem.tag),
+                );
+                tagWidget = Container(
+                  width: 35,
+                  padding: EdgeInsets.symmetric(vertical: 1),
+                  decoration: BoxDecoration(
+                      color: AppColors.dividerGrey,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Center(child: Text(headItem.tag)),
+                );
+              }
             }
 
-            return Container(
-              height: 105,
-              margin: EdgeInsets.only(
-                  right: AppDimensions.smallPadding,
-                  left: (shortcutsData.shortcuts.indexOf(headItem) == 0
-                      ? AppDimensions.primaryPadding
-                      : 0)),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  contentWidget,
-                  SizedBox(
-                    height: AppDimensions.primaryPadding,
-                  ),
-                  SizedBox(
-                    width: 75,
-                    child: Center(
-                      child: Text(
-                        headItem.content,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+                  return BlocProvider(bloc: bloc, child: TopicListPage());
+                }));
+              },
+              child: Container(
+                height: 105,
+                margin: EdgeInsets.only(
+                    right: AppDimensions.smallPadding,
+                    left: (shortcutsData.shortcuts.indexOf(headItem) == 0
+                        ? AppDimensions.primaryPadding
+                        : 0)),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Stack(
+                      alignment: Alignment.topLeft,
+                      children: [contentWidget, tagWidget],
                     ),
-                  )
-                ],
+                    SizedBox(
+                      height: AppDimensions.primaryPadding,
+                    ),
+                    SizedBox(
+                      width: 75,
+                      child: Center(
+                        child: Text(
+                          headItem.content,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
               ),
             );
           }).toList();

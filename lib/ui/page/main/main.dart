@@ -28,6 +28,9 @@ class _MainState extends State<MainPage> {
 
   @override
   void dispose() {
+    _navigationBarBloc?.dispose();
+    _recommendBloc?.dispose();
+    _tabBloc?.dispose();
     super.dispose();
   }
 

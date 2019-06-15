@@ -32,6 +32,7 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget>
 
   bool playFlag = false;
 
+
   Future<void> play() async {
     if (_controller != null &&
         _controller.value != null &&

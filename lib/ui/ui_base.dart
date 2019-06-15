@@ -27,6 +27,9 @@ class NormalPage extends StatefulWidget {
   final Color backgroundColor;
   final Color statusBarBackgroundColor;
   final IconThemeData iconTheme;
+  final Widget flexibleSpace;
+  final double titleSpacing;
+  final List<Widget> actions;
 
   NormalPage(
       {this.title,
@@ -34,7 +37,10 @@ class NormalPage extends StatefulWidget {
       this.needAppBar = true,
       this.backgroundColor,
       this.statusBarBackgroundColor,
-      this.iconTheme});
+      this.iconTheme,
+      this.flexibleSpace,
+      this.titleSpacing,
+      this.actions = const []});
 
   @override
   State<StatefulWidget> createState() {
@@ -52,6 +58,10 @@ class _NormalPageState extends State<NormalPage> {
               title: widget.title,
               backgroundColor: widget.statusBarBackgroundColor,
               iconTheme: widget.iconTheme,
+              flexibleSpace: widget.flexibleSpace,
+              titleSpacing:
+                  widget.titleSpacing ?? NavigationToolbar.kMiddleSpacing,
+              actions: widget.actions,
             )
           : null),
       body: widget.body,

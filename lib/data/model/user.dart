@@ -150,12 +150,29 @@ class UserAvatar {
 
 @JsonSerializable()
 class StatsCount {
+  @JsonKey(defaultValue: 0)
   final int topicSubscribed;
+  @JsonKey(defaultValue: 0)
   final int topicCreated;
+  @JsonKey(defaultValue: 0)
   final int followedCount;
+  @JsonKey(defaultValue: 0)
   final int followingCount;
+  @JsonKey(defaultValue: 0)
   final int highlightedPersonalUpdates;
+  @JsonKey(defaultValue: 0)
   final int liked;
+
+  String get formatLiked {
+    if (liked < 1000) return liked.toString();
+    return '${(liked / 1000.0).toStringAsFixed(1)}k';
+  }
+
+  String get formatHighlightedPersonalUpdates {
+    if (highlightedPersonalUpdates < 1000)
+      return highlightedPersonalUpdates.toString();
+    return '${(highlightedPersonalUpdates / 1000.0).toStringAsFixed(1)}k';
+  }
 
   StatsCount(
       {this.topicSubscribed,

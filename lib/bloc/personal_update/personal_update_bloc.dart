@@ -16,10 +16,24 @@ class PersonalUpdateBloc
     PersonalUpdateEvent event,
   ) async* {
     if (event is FetchPersonalUpdateEvent) {
-      _personalUpdate =
-          await ApiRequest.personalUpdates(event.username, limit: event.limit);
+      final List<Message> message = [];
+
+      if (event.loadMore && _personalUpdate.loadMoreKey.isEmpty) {
+        /// 没有更多数据
+        yield LoadedPersonalActivityState(_messageList);
+        return;
+      }
+
+      _personalUpdate = await ApiRequest.personalUpdates(event.username,
+          limit: event.limit,
+          loadMoreKey: (event.loadMore ? _personalUpdate.loadMoreKey : null));
+
+      if (!event.loadMore) {
+        _messageList.clear();
+      }
       _messageList.addAll(_personalUpdate.data);
-      yield LoadedPersonalActivityState(_messageList);
+      message.addAll(_messageList);
+      yield LoadedPersonalActivityState(message);
     }
   }
 }

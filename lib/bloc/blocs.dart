@@ -12,3 +12,4 @@ export 'media/bloc.dart';
 export 'video_list/bloc.dart';
 export 'personal_detail/bloc.dart';
 export 'personal_update//bloc.dart';
+export 'topic_list/bloc.dart';

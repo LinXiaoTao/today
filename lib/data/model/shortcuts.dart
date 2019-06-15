@@ -35,8 +35,12 @@ class Shortcut {
   @JsonKey(defaultValue: '')
   final String style;
 
+  /// 🔥
+  @JsonKey(defaultValue: '')
+  final String tag;
+
   Shortcut(this.id, this.type, this.contentType, this.content, this.url,
-      this.picUrl, this.style);
+      this.picUrl, this.style, this.tag);
 
   factory Shortcut.fromJson(Map json) => _$ShortcutFromJson(json);
 

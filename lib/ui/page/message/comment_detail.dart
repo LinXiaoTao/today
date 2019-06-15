@@ -21,6 +21,13 @@ class _CommentDetailPageState extends State<CommentDetailPage>
   final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
 
   @override
+  void dispose() {
+    _detailBloc?.dispose();
+    _commentReplyBloc?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return NormalPage(
       title: NormalTitle('评论详情'),

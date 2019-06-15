@@ -558,7 +558,7 @@ class LinkInfoWidget extends StatelessWidget {
                 ),
               );
             },
-          )
+          ),
         ],
       );
     } else {

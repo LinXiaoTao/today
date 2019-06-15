@@ -23,6 +23,12 @@ class _VideoListPageState extends State<VideoListPage>
   int _prePage = 0;
 
   @override
+  void dispose() {
+    _videoListBloc?.dispose();
+    super.dispose();
+  }
+
+  @override
   void afterFirstLayout(BuildContext context) {
     _videoListBloc.dispatch(FetchVideoListEvent(widget.message));
   }
@@ -163,35 +169,46 @@ class _TopWidget extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              AvatarWidget(item.user),
-              SizedBox(
-                width: AppDimensions.smallPadding,
-              ),
               Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: Builder(builder: (_) {
+                  if (item.user == null) return SizedBox();
+
+                  return Row(
                     children: <Widget>[
-                      ScreenNameWidget(
-                        user: item.user,
-                        textColor: Colors.white,
-                        fontSize: 13,
-                      ),
+                      AvatarWidget(item.user),
                       SizedBox(
-                        height: AppDimensions.smallPadding,
+                        width: AppDimensions.smallPadding,
                       ),
-                      Text(
-                        _dateFormat
-                            .format(DateTime.parse(item.createdAt).toLocal()),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              ScreenNameWidget(
+                                user: item.user,
+                                textColor: Colors.white,
+                                fontSize: 13,
+                              ),
+                              SizedBox(
+                                height: AppDimensions.smallPadding,
+                              ),
+                              Text(
+                                _dateFormat.format(
+                                    DateTime.parse(item.createdAt).toLocal()),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: Colors.white54, fontSize: 12),
+                              )
+                            ],
+                          ),
+                        ),
                       )
                     ],
-                  ),
-                ),
-              )
+                  );
+                }),
+              ),
             ],
           ),
         ),
@@ -215,172 +232,166 @@ class _BottomWidget extends StatefulWidget {
 class _BottomState extends State<_BottomWidget> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: AppDimensions.primaryPadding * 1.5),
-          child: Row(
-            children: <Widget>[
-              StreamBuilder<VideoPlayerValue>(
-                stream: widget.playerKey.currentState.loadMediaStream,
-                builder: (_, snapshot) {
-                  if (snapshot.hasData) {
-                    final videoData = snapshot.data;
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        if (videoData.isPlaying) {
-                          widget.playerKey.currentState.pause();
-                        } else {
-                          widget.playerKey.currentState.play();
-                        }
-                      },
-                      child: Image.asset((videoData.isPlaying
-                          ? 'images/ic_mediaplayer_videoplayer_pause.png'
-                          : 'images/ic_mediaplayer_videoplayer_play.png')),
-                    );
-                  }
-                  return SizedBox();
-                },
-              ),
-              Expanded(
-                child: StreamBuilder<VideoPlayerValue>(
+    return Container(
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+              colors: [Colors.black45, Colors.transparent],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: AppDimensions.primaryPadding * 1.5),
+            child: Row(
+              children: <Widget>[
+                StreamBuilder<VideoPlayerValue>(
                   stream: widget.playerKey.currentState.loadMediaStream,
                   builder: (_, snapshot) {
-                    int cur = 0;
-                    int max = 0;
-                    if (snapshot.hasData) {
-                      final duration = snapshot.data.duration ?? Duration();
-                      final position = snapshot.data.position ?? Duration();
-
-                      cur = position.inSeconds;
-                      max = duration.inSeconds;
-                    }
-                    return Slider.adaptive(
-                      value: cur.toDouble(),
-                      max: max.toDouble(),
-                      activeColor: AppColors.accentColor,
-                      inactiveColor: Colors.white,
-                      onChanged: (double value) {
-                        widget.playerKey.currentState
-                            .seekTo(Duration(seconds: value.toInt()));
-                      },
-                    );
-                  },
-                ),
-              ),
-              StreamBuilder(
-                  stream: widget.playerKey.currentState.loadMediaStream,
-                  builder: (_, snapshot) {
-                    Duration duration = Duration();
-                    Duration position = Duration();
                     if (snapshot.hasData) {
                       final videoData = snapshot.data;
-                      duration = videoData.duration ?? Duration();
-                      position = videoData.position ?? Duration();
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          if (videoData.isPlaying) {
+                            widget.playerKey.currentState.pause();
+                          } else {
+                            widget.playerKey.currentState.play();
+                          }
+                        },
+                        child: Image.asset((videoData.isPlaying
+                            ? 'images/ic_mediaplayer_videoplayer_pause.png'
+                            : 'images/ic_mediaplayer_videoplayer_play.png')),
+                      );
                     }
-
-                    return Text(
-                      '${_formatDuration(position)}/${_formatDuration(duration)}',
-                      style: TextStyle(fontSize: 12, color: Colors.white),
-                    );
-                  }),
-              SizedBox(
-                width: AppDimensions.primaryPadding,
-              ),
-              Image.asset('images/ic_mediaplayer_videoplayer_landscape.png'),
-            ],
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [Colors.black45, Colors.transparent],
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(
-                height: AppDimensions.primaryPadding * 2,
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: AppDimensions.primaryPadding * 1.5),
-                child: Text(
-                  widget.item.content,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white),
+                    return SizedBox();
+                  },
                 ),
-              ),
-              SizedBox(
-                height: AppDimensions.primaryPadding * 2.5,
-              ),
-              SizedBox(
-                height: 60,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                Expanded(
+                  child: StreamBuilder<VideoPlayerValue>(
+                    stream: widget.playerKey.currentState.loadMediaStream,
+                    builder: (_, snapshot) {
+                      int cur = 0;
+                      int max = 0;
+                      if (snapshot.hasData) {
+                        final duration = snapshot.data.duration ?? Duration();
+                        final position = snapshot.data.position ?? Duration();
+
+                        cur = position.inSeconds;
+                        max = duration.inSeconds;
+                      }
+                      return Slider.adaptive(
+                        value: cur.toDouble(),
+                        max: max.toDouble(),
+                        activeColor: AppColors.accentColor,
+                        inactiveColor: Colors.white,
+                        onChanged: (double value) {
+                          widget.playerKey.currentState
+                              .seekTo(Duration(seconds: value.toInt()));
+                        },
+                      );
+                    },
+                  ),
+                ),
+                StreamBuilder(
+                    stream: widget.playerKey.currentState.loadMediaStream,
+                    builder: (_, snapshot) {
+                      Duration duration = Duration();
+                      Duration position = Duration();
+                      if (snapshot.hasData) {
+                        final videoData = snapshot.data;
+                        duration = videoData.duration ?? Duration();
+                        position = videoData.position ?? Duration();
+                      }
+
+                      return Text(
+                        '${_formatDuration(position)}/${_formatDuration(duration)}',
+                        style: TextStyle(fontSize: 12, color: Colors.white),
+                      );
+                    }),
+                SizedBox(
+                  width: AppDimensions.primaryPadding,
+                ),
+                Image.asset('images/ic_mediaplayer_videoplayer_landscape.png'),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: AppDimensions.primaryPadding * 2,
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: AppDimensions.primaryPadding * 1.5),
+            child: Text(
+              widget.item.content,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          SizedBox(
+            height: AppDimensions.primaryPadding * 2.5,
+          ),
+          SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Column(
                   children: <Widget>[
-                    Column(
-                      children: <Widget>[
-                        Image.asset('images/ic_messages_like_unselected.png'),
-                        SizedBox(
-                          height: AppDimensions.smallPadding,
-                        ),
-                        Text(
-                          '${widget.item.likeCount}',
-                          style: TextStyle(fontSize: 12, color: Colors.white),
-                        ),
-                      ],
+                    Image.asset('images/ic_messages_like_unselected.png'),
+                    SizedBox(
+                      height: AppDimensions.smallPadding,
                     ),
-                    Column(
-                      children: <Widget>[
-                        Image.asset('images/ic_messages_comment.png'),
-                        SizedBox(
-                          height: AppDimensions.smallPadding,
-                        ),
-                        Text(
-                          '${widget.item.commentCount}',
-                          style: TextStyle(fontSize: 12, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      children: <Widget>[
-                        Image.asset(
-                            'images/ic_messages_collect_unselected.png'),
-                        SizedBox(
-                          height: AppDimensions.smallPadding,
-                        ),
-                        Text(
-                          '收藏',
-                          style: TextStyle(fontSize: 12, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      children: <Widget>[
-                        Image.asset('images/ic_messages_share.png'),
-                        SizedBox(
-                          height: AppDimensions.smallPadding,
-                        ),
-                        Text(
-                          '${widget.item.shareCount}',
-                          style: TextStyle(fontSize: 12, color: Colors.white),
-                        ),
-                      ],
+                    Text(
+                      '${widget.item.likeCount}',
+                      style: TextStyle(fontSize: 12, color: Colors.white),
                     ),
                   ],
                 ),
-              ),
-            ],
+                Column(
+                  children: <Widget>[
+                    Image.asset('images/ic_messages_comment.png'),
+                    SizedBox(
+                      height: AppDimensions.smallPadding,
+                    ),
+                    Text(
+                      '${widget.item.commentCount}',
+                      style: TextStyle(fontSize: 12, color: Colors.white),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: <Widget>[
+                    Image.asset('images/ic_messages_collect_unselected.png'),
+                    SizedBox(
+                      height: AppDimensions.smallPadding,
+                    ),
+                    Text(
+                      '收藏',
+                      style: TextStyle(fontSize: 12, color: Colors.white),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: <Widget>[
+                    Image.asset('images/ic_messages_share.png'),
+                    SizedBox(
+                      height: AppDimensions.smallPadding,
+                    ),
+                    Text(
+                      '${widget.item.shareCount}',
+                      style: TextStyle(fontSize: 12, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

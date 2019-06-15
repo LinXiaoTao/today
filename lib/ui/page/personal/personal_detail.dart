@@ -22,6 +22,8 @@ class _PersonalDetailPageState extends State<PersonalDetailPage> {
 
   @override
   void dispose() {
+    _personalDetailBloc?.dispose();
+    _personalActivityBloc?.dispose();
     super.dispose();
   }
 
@@ -150,14 +152,14 @@ class _AppBarTitleState extends State<_AppBarTitleWidget>
                       AvatarWidget(
                         state.userInfo.user,
                         jumpDetail: false,
-                        size: 35,
+                        size: 36,
                       ),
                       SizedBox(
-                        width: AppDimensions.smallPadding,
+                        width: AppDimensions.primaryPadding,
                       ),
                       Expanded(
                         child: SizedBox(
-                          height: 38,
+                          height: 36,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -194,7 +196,7 @@ class _AppBarTitleState extends State<_AppBarTitleWidget>
                       style: TextStyle(fontSize: 12, color: Colors.white),
                     ),
                   ),
-                )
+                ),
               ],
             );
           }
@@ -641,6 +643,25 @@ class _TabContentWidget extends StatefulWidget {
 
 class _TabContentWidgetState extends State<_TabContentWidget>
     with AfterLayoutMixin<_TabContentWidget> {
+  bool _loadMore = false;
+
+  @override
+  void initState() {
+    widget.bloc.state.listen((state) {
+      if (state is LoadedPersonalActivityState) {
+        /// 加载成功
+        _loadMore = false;
+      }
+      debugPrint('state = $state');
+    });
+    widget.bloc.event.listen((event) {
+      if (event is FetchPersonalUpdateEvent) {
+        Fluttertoast.showToast(msg: '加载数据');
+      }
+    });
+    super.initState();
+  }
+
   @override
   void afterFirstLayout(BuildContext context) {
     widget.bloc.dispatch(FetchPersonalUpdateEvent(widget.username));
@@ -649,17 +670,34 @@ class _TabContentWidgetState extends State<_TabContentWidget>
   @override
   Widget build(BuildContext context) {
     return TabBarView(children: [
-      CustomScrollView(
-        slivers: <Widget>[
-          SliverOverlapInjector(
-            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-          ),
-          SliverToBoxAdapter(
-            child: _TabActivityWidget(
-              bloc: widget.bloc,
+      NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          /// 自动加载更多
+          if (notification is ScrollEndNotification &&
+              notification.metrics != null) {
+            if (notification.metrics.extentAfter < 200 &&
+                notification.metrics.extentInside > 0 &&
+                !_loadMore) {
+              /// 加载更多
+              _loadMore = true;
+              widget.bloc.dispatch(
+                  FetchPersonalUpdateEvent(widget.username, loadMore: true));
+            }
+          }
+        },
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverOverlapInjector(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
             ),
-          )
-        ],
+            SliverToBoxAdapter(
+              child: _TabActivityWidget(
+                bloc: widget.bloc,
+                detailBloc: widget.personalDetailBloc,
+              ),
+            )
+          ],
+        ),
       ),
       CustomScrollView(
         slivers: <Widget>[
@@ -901,291 +939,358 @@ class _TabInformationWidget extends StatelessWidget {
 
 class _TabActivityWidget extends StatelessWidget {
   final PersonalUpdateBloc bloc;
+  final PersonalDetailBloc detailBloc;
 
-  _TabActivityWidget({
-    Key key,
-    @required this.bloc,
-  }) : super(key: key);
+  _TabActivityWidget({Key key, @required this.bloc, @required this.detailBloc})
+      : super(key: key);
 
   final intl.DateFormat _dateFormat = intl.DateFormat('MM/dd HH:mm');
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder(
-        bloc: bloc,
-        builder: (_, PersonalUpdateState state) {
-          if (state is LoadedPersonalActivityState) {
-            return Container(
-              color: Colors.white,
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: state.items.length,
-                padding: EdgeInsets.zero,
-                itemBuilder: (_, index) {
-                  Message item = state.items[index];
+    return Column(
+      children: <Widget>[
+        BlocBuilder(
+          bloc: detailBloc,
+          builder: (_, PersonalDetailState state) {
+            if (state is LoadedPersonalDataState) {
+              return DefaultTextStyle(
+                style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppDimensions.primaryPadding,
+                      vertical: AppDimensions.smallPadding),
+                  child: Row(
+                    children: <Widget>[
+                      Image.asset(
+                        'images/ic_messages_like_unselected.png',
+                        width: 15,
+                        height: 15,
+                      ),
+                      SizedBox(
+                        width: AppDimensions.smallPadding,
+                      ),
+                      Text(
+                        '动态获得 ${state.userInfo.user.statsCount.formatLiked} 次赞',
+                      ),
+                      SizedBox(
+                        width: AppDimensions.primaryPadding * 2,
+                      ),
+                      Image.asset(
+                        'images/ic_personal_page_choice_tag.png',
+                        width: 15,
+                        height: 15,
+                      ),
+                      SizedBox(
+                        width: AppDimensions.smallPadding,
+                      ),
+                      Text(
+                          '获得 ${state.userInfo.user.statsCount.formatHighlightedPersonalUpdates} 次精选'),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return SizedBox();
+          },
+        ),
+        BlocBuilder(
+            bloc: bloc,
+            builder: (_, PersonalUpdateState state) {
+              if (state is LoadedPersonalActivityState) {
+                return Container(
+                  color: Colors.white,
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: state.items.length,
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (_, index) {
+                      Message item = state.items[index];
 
-                  return Material(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.of(context)
-                            .push(MaterialPageRoute(builder: (_) {
-                          return MessageDetailPage(
-                            id: item.id,
-                            pageName: 'personal_page',
-                            type: item.messageType,
-                          );
-                        }));
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            left: AppDimensions.primaryPadding,
-                            right: AppDimensions.primaryPadding,
-                            top: AppDimensions.primaryPadding * 2,
-                            bottom: AppDimensions.primaryPadding),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            AvatarWidget(
-                              item.user,
-                            ),
-                            SizedBox(
-                              width: AppDimensions.primaryPadding,
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  SizedBox(
-                                    height: 40,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: <Widget>[
-                                        Row(
+                      return Material(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (_) {
+                              return MessageDetailPage(
+                                id: item.id,
+                                pageName: 'personal_page',
+                                type: item.messageType,
+                              );
+                            }));
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                                left: AppDimensions.primaryPadding,
+                                right: AppDimensions.primaryPadding,
+                                top: AppDimensions.primaryPadding * 2,
+                                bottom: AppDimensions.primaryPadding),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                AvatarWidget(
+                                  item.user,
+                                ),
+                                SizedBox(
+                                  width: AppDimensions.primaryPadding,
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      SizedBox(
+                                        height: 40,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
                                           children: <Widget>[
-                                            ScreenNameWidget(
-                                              user: item.user,
-                                            ),
-                                            SizedBox(
-                                              width:
-                                                  AppDimensions.smallPadding /
+                                            Row(
+                                              children: <Widget>[
+                                                ScreenNameWidget(
+                                                  user: item.user,
+                                                ),
+                                                SizedBox(
+                                                  width: AppDimensions
+                                                          .smallPadding /
                                                       2,
+                                                ),
+                                                Builder(builder: (_) {
+                                                  if (item.messageType ==
+                                                      MessageType.RE_POST) {
+                                                    return Text(
+                                                      '分享了',
+                                                      style: TextStyle(
+                                                          color: AppColors
+                                                              .tipsTextColor),
+                                                    );
+                                                  }
+
+                                                  if (item.messageType ==
+                                                      MessageType.ANSWER) {
+                                                    return Text(
+                                                      '回答了问题',
+                                                      style: TextStyle(
+                                                          color: AppColors
+                                                              .tipsTextColor),
+                                                    );
+                                                  }
+
+                                                  return SizedBox();
+                                                }),
+                                              ],
                                             ),
-                                            Builder(builder: (_) {
-                                              if (item.messageType ==
-                                                  MessageType.RE_POST) {
-                                                return Text(
-                                                  '分享了',
-                                                  style: TextStyle(
-                                                      color: AppColors
-                                                          .tipsTextColor),
-                                                );
-                                              }
-
-                                              if (item.messageType ==
-                                                  MessageType.ANSWER) {
-                                                return Text(
-                                                  '回答了问题',
-                                                  style: TextStyle(
-                                                      color: AppColors
-                                                          .tipsTextColor),
-                                                );
-                                              }
-
-                                              return SizedBox();
-                                            }),
+                                            Text(
+                                              _dateFormat.format(
+                                                  DateTime.parse(item.createdAt)
+                                                      .toLocal()),
+                                              style: TextStyle(
+                                                  color:
+                                                      AppColors.tipsTextColor,
+                                                  fontSize: 12),
+                                            ),
                                           ],
                                         ),
-                                        Text(
-                                          _dateFormat.format(
-                                              DateTime.parse(item.createdAt)
-                                                  .toLocal()),
-                                          style: TextStyle(
-                                              color: AppColors.tipsTextColor,
-                                              fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: AppDimensions.smallPadding,
-                                  ),
-                                  Builder(builder: (_) {
-                                    if (item.messageType ==
-                                        MessageType.ANSWER) {
-                                      return AnswerWidget(item);
-                                    }
-
-                                    final List<TextSpan> child = [];
-
-                                    if (item.pictures.isNotEmpty &&
-                                        item.messageType !=
-                                            MessageType.ORIGINAL_POST) {
-                                      /// todo ImageSpan 放到最前面有问题，先暂时放个假的
-                                      child.add(TextSpan(text: ' '));
-
-                                      TapGestureRecognizer detail =
-                                          TapGestureRecognizer();
-                                      detail.onTap = () {
-                                        Navigator.of(context).push(
-                                            MaterialPageRoute(builder: (_) {
-                                          return PictureDetailPage(
-                                            item.pictures,
-                                          );
-                                        }));
-                                      };
-
-                                      child.add(ImageSpan(
-                                        AssetImage(
-                                            'images/ic_feedback_sendpic.png'),
-                                        imageWidth: 15,
-                                        imageHeight: 15,
-                                        color: AppColors.blue,
-                                        margin: EdgeInsets.only(
-                                            right:
-                                                AppDimensions.smallPadding / 2),
-                                      ));
-
-                                      child.add(TextSpan(
-                                        text: '查看图片',
-                                        style: TextStyle(
-                                          color: AppColors.blue,
-                                        ),
-                                        recognizer: detail,
-                                      ));
-                                    }
-
-                                    if (item.content.isNotEmpty) {
-                                      child.addAll(parseUrlsInText(
-                                          item.urlsInText, item.content));
-                                    }
-
-                                    return RealRichText(
-                                      child,
-                                      style: TextStyle(
-                                          color: AppColors.primaryTextColor),
-                                    );
-                                  }),
-                                  Builder(builder: (_) {
-                                    if (item.messageType ==
-                                        MessageType.ORIGINAL_POST) {
-                                      return Column(
-                                        children: <Widget>[
-                                          SizedBox(
-                                            height: AppDimensions.smallPadding,
-                                          ),
-                                          MessageBodyWidget(item),
-                                        ],
-                                      );
-                                    }
-                                    return SizedBox();
-                                  }),
-                                  Column(
-                                    children: <Widget>[
+                                      ),
+                                      SizedBox(
+                                        height: AppDimensions.smallPadding,
+                                      ),
                                       Builder(builder: (_) {
-                                        if (item.linkInfo == null)
-                                          return SizedBox();
+                                        if (item.messageType ==
+                                            MessageType.ANSWER) {
+                                          return Column(
+                                            children: <Widget>[
+                                              AnswerWidget(item),
+                                              SizedBox(
+                                                height:
+                                                    AppDimensions.smallPadding,
+                                              ),
+                                            ],
+                                          );
+                                        }
 
-                                        return SizedBox(
-                                          height: AppDimensions.primaryPadding,
+                                        final List<TextSpan> child = [];
+
+                                        if (item.pictures.isNotEmpty &&
+                                            item.messageType !=
+                                                MessageType.ORIGINAL_POST) {
+                                          TapGestureRecognizer detail =
+                                              TapGestureRecognizer();
+                                          detail.onTap = () {
+                                            Navigator.of(context).push(
+                                                MaterialPageRoute(builder: (_) {
+                                              return PictureDetailPage(
+                                                item.pictures,
+                                              );
+                                            }));
+                                          };
+
+                                          child.add(ImageSpan(
+                                            AssetImage(
+                                                'images/ic_feedback_sendpic.png'),
+                                            imageWidth: 15,
+                                            imageHeight: 15,
+                                            color: AppColors.blue,
+                                            margin: EdgeInsets.only(
+                                                right:
+                                                    AppDimensions.smallPadding /
+                                                        2),
+                                          ));
+
+                                          child.add(TextSpan(
+                                            text: '查看图片',
+                                            style: TextStyle(
+                                              color: AppColors.blue,
+                                            ),
+                                            recognizer: detail,
+                                          ));
+                                        }
+
+                                        if (item.content.isNotEmpty) {
+                                          child.addAll(parseUrlsInText(
+                                              item.urlsInText, item.content));
+                                        }
+
+                                        if (child.isEmpty) {
+                                          return SizedBox();
+                                        }
+
+                                        return Column(
+                                          children: <Widget>[
+                                            RealRichText(
+                                              child,
+                                              style: TextStyle(
+                                                  color: AppColors
+                                                      .primaryTextColor),
+                                            ),
+                                            SizedBox(
+                                              height:
+                                                  AppDimensions.smallPadding,
+                                            ),
+                                          ],
                                         );
                                       }),
-                                      LinkInfoWidget(item),
-                                    ],
-                                  ),
-                                  Builder(builder: (_) {
-                                    if (RePostWidget.hasData(item)) {
-                                      return Column(
+                                      Builder(builder: (_) {
+                                        if (item.messageType ==
+                                            MessageType.ORIGINAL_POST) {
+                                          return Column(
+                                            children: <Widget>[
+                                              MessageBodyWidget(item),
+                                              SizedBox(
+                                                height: AppDimensions
+                                                    .primaryPadding,
+                                              ),
+                                            ],
+                                          );
+                                        }
+                                        return SizedBox();
+                                      }),
+                                      Column(
                                         children: <Widget>[
+                                          LinkInfoWidget(item),
                                           Builder(builder: (_) {
+                                            if (item.linkInfo == null)
+                                              return SizedBox();
+
                                             return SizedBox(
                                               height:
                                                   AppDimensions.primaryPadding,
                                             );
                                           }),
-                                          RePostWidget(item),
                                         ],
-                                      );
-                                    }
-                                    return SizedBox();
-                                  }),
-                                  Builder(builder: (_) {
-                                    if (item.topic == null) return SizedBox();
-
-                                    /// 圈子信息
-                                    return Column(
-                                      children: <Widget>[
-                                        SizedBox(
-                                          height: AppDimensions.primaryPadding,
-                                        ),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(12)),
-                                          padding: EdgeInsets.symmetric(
-                                              vertical:
-                                                  AppDimensions.smallPadding /
-                                                      3 *
-                                                      2,
-                                              horizontal:
-                                                  AppDimensions.primaryPadding /
-                                                      3 *
-                                                      2),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
+                                      ),
+                                      Builder(builder: (_) {
+                                        if (RePostWidget.hasData(item)) {
+                                          return Column(
                                             children: <Widget>[
-                                              Image.asset(
-                                                'images/ic_personal_tab_my_topic.png',
-                                                width: 16,
-                                                height: 16,
-                                              ),
+                                              RePostWidget(item),
                                               SizedBox(
-                                                width:
-                                                    AppDimensions.smallPadding,
-                                              ),
-                                              Text(
-                                                item.topic.content,
-                                                style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: AppColors.blue),
+                                                height: AppDimensions
+                                                    .primaryPadding,
                                               ),
                                             ],
-                                          ),
-                                        )
-                                      ],
-                                    );
-                                  }),
-                                  SizedBox(
-                                    height: AppDimensions.primaryPadding,
-                                  ),
-                                  CommentWidget(
-                                    bodyItem: item,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                separatorBuilder: (_, index) {
-                  return Divider(
-                    indent: AppDimensions.primaryPadding,
-                    height: 1,
-                    color: AppColors.dividerGrey,
-                  );
-                },
-              ),
-            );
-          }
+                                          );
+                                        }
+                                        return SizedBox();
+                                      }),
+                                      Builder(builder: (_) {
+                                        if (item.topic == null)
+                                          return SizedBox();
 
-          return PageLoadingWidget();
-        });
+                                        /// 圈子信息
+                                        return Column(
+                                          children: <Widget>[
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                  color: Colors.grey[200],
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12)),
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: AppDimensions
+                                                          .smallPadding /
+                                                      3 *
+                                                      2,
+                                                  horizontal: AppDimensions
+                                                          .primaryPadding /
+                                                      3 *
+                                                      2),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: <Widget>[
+                                                  Image.asset(
+                                                    'images/ic_personal_tab_my_topic.png',
+                                                    width: 16,
+                                                    height: 16,
+                                                  ),
+                                                  SizedBox(
+                                                    width: AppDimensions
+                                                        .smallPadding,
+                                                  ),
+                                                  Text(
+                                                    item.topic.content,
+                                                    style: TextStyle(
+                                                        fontSize: 10,
+                                                        color: AppColors.blue),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height:
+                                                  AppDimensions.primaryPadding,
+                                            ),
+                                          ],
+                                        );
+                                      }),
+                                      CommentWidget(
+                                        bodyItem: item,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (_, index) {
+                      return Divider(
+                        indent: AppDimensions.primaryPadding,
+                        height: 1,
+                        color: AppColors.dividerGrey,
+                      );
+                    },
+                  ),
+                );
+              }
+              return PageLoadingWidget();
+            }),
+      ],
+    );
   }
 }

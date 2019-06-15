@@ -313,6 +313,12 @@ class _RealRichRenderParagraph extends RenderParagraph {
           bounds,
         );
 
+        if (textOffset == 0) {
+          offsetForCaret = Offset(0, offsetForCaret.dy);
+        }
+
+        debugPrint('$textOffset = $offsetForCaret');
+
         // found this is a overflowed image. ignore it
         if (textOffset != 0 &&
             offsetForCaret.dx == 0 &&
@@ -328,8 +334,8 @@ class _RealRichRenderParagraph extends RenderParagraph {
                 offsetForCaret.dx -
                 (textOffset == 0 ? 0 : textSpan.width / 2),
             offset.dy + offsetForCaret.dy);
-        debugPrint(
-            "_RealRichRenderParagraph ImageSpan, textOffset = $textOffset, offsetForCaret=$offsetForCaret, topLeftOffset=$topLeftOffset");
+//        debugPrint(
+//            "_RealRichRenderParagraph ImageSpan, textOffset = $textOffset, offsetForCaret=$offsetForCaret, topLeftOffset=$topLeftOffset");
 
         ColorFilter colorFilter;
         if (textSpan.color != null) {

@@ -4,18 +4,66 @@ import 'package:today/data/model/user.dart';
 
 part 'topic.g.dart';
 
+@JsonSerializable()
+class TopicList {
+  @JsonKey(defaultValue: -1)
+  final int loadMoreKey;
+  @JsonKey(defaultValue: [])
+  final List<Topic> data;
+
+  TopicList(this.loadMoreKey, this.data);
+
+  factory TopicList.fromJson(Map json) => _$TopicListFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TopicListToJson(this);
+}
+
 /// 主题
 @JsonSerializable()
 class Topic {
+  @JsonKey(defaultValue: '')
   final String id;
 
   ///TOPIC
+  @JsonKey(defaultValue: '')
   final String type;
 
+  /// 《生活大爆炸》最新资讯
+  @JsonKey(defaultValue: '')
+  final String messagePrefix;
+
+  @JsonKey(defaultValue: 0)
+  final int topicId;
+
+  /// 《生活大爆炸》追剧小组
+  @JsonKey(defaultValue: '')
   final String content;
 
+  @JsonKey(defaultValue: '')
+  final String timeForRank;
+
+  @JsonKey(defaultValue: '')
+  final String lastMessagePostTime;
+
+  @JsonKey(defaultValue: false)
+  final bool isAnonymous;
+
+  @JsonKey(defaultValue: false)
+  final bool isDreamTopic;
+
+  @JsonKey(defaultValue: '')
+  final String createdAt;
+
+  @JsonKey(defaultValue: '')
+  final String updatedAt;
+
   /// 698414
+  @JsonKey(defaultValue: 0)
   final int subscribersCount;
+
+  /// 2 是已关注
+  @JsonKey(defaultValue: 0)
+  int subscribedStatusRawValue;
 
   /// 69 万
   final String approximateSubscribersCount;
@@ -38,9 +86,6 @@ class Topic {
   final String operateStatus;
 
   final bool isCommentForbidden;
-
-  /// 2019-05-11T09:16:36.326Z
-  final String lastMessagePostTime;
 
   ///2019-05-11T09:16:36.326Z
   final String squarePostUpdateTime;
@@ -65,11 +110,36 @@ class Topic {
 
   final InvolvedUsers involvedUsers;
 
+  String get subscribersCountText {
+    if (subscribersCount < 100 * 10000) {
+      return subscribersCount.toString();
+    }
+
+    return '${(subscribersCount / 10000).toStringAsFixed(0)}万+';
+  }
+
+  bool get subscribersState {
+    return subscribedStatusRawValue == 2;
+  }
+
+  set subscribersState(bool state) {
+    subscribedStatusRawValue = state ? 2 : 0;
+  }
+
   Topic(
       this.id,
       this.type,
+      this.messagePrefix,
+      this.topicId,
       this.content,
+      this.timeForRank,
+      this.lastMessagePostTime,
+      this.isAnonymous,
+      this.isDreamTopic,
+      this.createdAt,
+      this.updatedAt,
       this.subscribersCount,
+      this.subscribedStatusRawValue,
       this.approximateSubscribersCount,
       this.briefIntro,
       this.squarePicture,
@@ -79,7 +149,6 @@ class Topic {
       this.topicType,
       this.operateStatus,
       this.isCommentForbidden,
-      this.lastMessagePostTime,
       this.squarePostUpdateTime,
       this.subscribersName,
       this.subscribersAction,
@@ -103,4 +172,18 @@ class InvolvedUsers {
   factory InvolvedUsers.fromJson(Map json) => _$InvolvedUsersFromJson(json);
 
   Map<String, dynamic> toJson() => _$InvolvedUsersToJson(this);
+}
+
+@JsonSerializable()
+class TopicTab {
+  @JsonKey(defaultValue: '')
+  final String name;
+  @JsonKey(defaultValue: '')
+  final String alias;
+
+  TopicTab(this.name, this.alias);
+
+  factory TopicTab.fromJson(Map json) => _$TopicTabFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TopicTabToJson(this);
 }

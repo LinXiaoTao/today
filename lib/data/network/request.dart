@@ -66,7 +66,7 @@ class ApiRequest {
   /// 推荐数据
   static Future<RecommendFeed> recommendFeedList(
       {LoadMoreKey loadMoreKey}) async {
-    var requestData = {"debug": false, "trigger": "user"};
+    Map requestData = {"trigger": "user"};
 
     if (loadMoreKey != null) {
       requestData['loadMoreKey'] = loadMoreKey;
@@ -240,6 +240,46 @@ class ApiRequest {
     });
   }
 
+  static Future<List<TopicTab>> topicListTabs() async {
+    return _dio.get('/1.0/topics/discovery/listTabs').then((value) {
+      List data = value.data['data'];
+      return data.map((item) {
+        return TopicTab.fromJson(item);
+      }).toList();
+    });
+  }
+
+  static Future<TopicList> topicListTopics(
+      {int loadMoreKey = -1, String type = 'recommendation'}) async {
+    Map<String, dynamic> data = {'type': type};
+    if (loadMoreKey != -1) {
+      data['loadMoreKey'] = loadMoreKey;
+    }
+
+    return _dio
+        .post('/1.0/topics/discovery/listTopics', data: data)
+        .then((value) {
+      return TopicList.fromJson(value.data);
+    });
+  }
+
+  static Future<bool> changeSubscriptionState(
+      {String topicObjectId,
+      bool subscribed,
+      String ref,
+      String pageName,
+      bool push = true}) async {
+    return _dio.post('/1.0/users/topics/changeSubscriptionStatus', data: {
+      'topicObjectId': topicObjectId,
+      'subscribed': subscribed,
+      'ref': ref,
+      'pageName': pageName,
+      'push': push
+    }).then((value) {
+      return value.data['success'];
+    });
+  }
+
   static initDio() async {
     if (_init) return;
     String deviceId = await SimpleStorage.getString(key_device_id);
@@ -256,12 +296,17 @@ class ApiRequest {
     }
     _dio = Dio(BaseOptions(baseUrl: "https://app.jike.ruguoapp.com", headers: {
       "user-agent": "okhttp/3.13.1",
-      "applicationid": "com.ruguoapp.jike",
+      "ApplicationId": "com.ruguoapp.jike",
       "notification-status": "ON",
-      "app-version": "5.8.1",
-      "app-buildno": "828",
-      "os-version": 26,
+      "App-Version": "5.8.1",
+      "App-BuildNo": "828",
+      "OS-Version": 26,
       "Content-Type": "application/json",
+      'Manufacturer': 'HUAWEI',
+      'Model': 'BLN-AL10',
+      'OS': 'android',
+      'Resolution': '1080x1800',
+      'Market': 'debug',
       key_device_id: deviceId
     }));
 
@@ -271,7 +316,7 @@ class ApiRequest {
       (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
           (client) {
         client.findProxy = (url) {
-          return "PROXY 192.168.2.101:8888";
+          return "PROXY 172.21.12.127:8888";
         };
         //抓Https包设置
         client.badCertificateCallback =
@@ -298,6 +343,9 @@ class ApiRequest {
       /// 刷新缓存
       await LoginState.init();
     }
+
+    /// 异步获取当前用户数据
+    profile();
 
     _scheduleRefreshTokenTask();
   }

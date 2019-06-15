@@ -35,6 +35,24 @@ class _MessageDetailState extends State<MessageDetailPage>
   final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
   final GlobalKey<__CommentListWidgetState> _commentListKey = GlobalKey();
 
+  final StreamController<double> _scrollController = StreamController();
+  Stream<double> _scrollStream;
+
+  @override
+  void initState() {
+    _scrollStream = _scrollController.stream;
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _detailBloc?.dispose();
+    _relatedBloc?.dispose();
+    _commentListBloc?.dispose();
+    _scrollController?.close();
+    super.dispose();
+  }
+
   @override
   void afterFirstLayout(BuildContext context) {
     _detailBloc.dispatch(
@@ -52,208 +70,313 @@ class _MessageDetailState extends State<MessageDetailPage>
           Message message = state.message;
           UserInfo user = message.user;
           return NormalPage(
-            title: NormalTitle('动态详情'),
-            body: EasyRefresh(
-                refreshHeader: PhoenixHeader(
-                  key: _refreshHeaderKey,
-                ),
-                refreshFooter: BallPulseFooter(
-                  key: _loadMoreFooterKey,
-                  backgroundColor: Colors.transparent,
-                  color: AppColors.accentColor,
-                ),
-                autoLoad: true,
-                onRefresh: () {
-                  _detailBloc.dispatch(FetchMessageDetailEvent(widget.id,
-                      ref: widget.ref, type: widget.type));
-                  _relatedBloc.dispatch(FetchMessageRelatedListEvent(widget.id,
-                      pageName: widget.pageName, type: widget.type));
-                  _commentListKey.currentState.refreshData();
-                },
-                loadMore: () {
-                  _commentListKey.currentState.refreshData(loadMore: true);
-                },
-                firstRefresh: false,
-                child: CustomScrollView(
-                  slivers: <Widget>[
-                    SliverToBoxAdapter(
-                      child: Container(
-                        color: Colors.white,
-                        margin: EdgeInsets.only(
-                            bottom: AppDimensions.primaryPadding),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: AppDimensions.primaryPadding),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+            titleSpacing: 0,
+            title: StreamBuilder(
+              stream: _scrollStream,
+              builder: (_, snapshot) {
+                double value = 0;
+                if (snapshot.hasData) {
+                  value = snapshot.data;
+                }
+
+                if (value > 100 && user != null) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Expanded(
+                        child: Row(
                           children: <Widget>[
-                            SizedBox(
-                              height: AppDimensions.primaryPadding,
+                            AvatarWidget(
+                              user,
+                              jumpDetail: false,
+                              size: 32,
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Builder(builder: (_) {
-                                  if (user != null) {
-                                    return Row(
-                                      children: <Widget>[
-                                        AvatarWidget(user),
-                                        SizedBox(
-                                          width: AppDimensions.primaryPadding,
-                                        ),
-                                      ],
-                                    );
-                                  }
-                                  return SizedBox();
-                                }),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Builder(builder: (_) {
-                                        if (user != null) {
-                                          return Column(
-                                            children: <Widget>[
-                                              ScreenNameWidget(user: user),
-                                              SizedBox(
-                                                height:
-                                                    AppDimensions.smallPadding,
-                                              ),
-                                            ],
-                                          );
-                                        }
-
-                                        return SizedBox();
-                                      }),
-                                      Row(
-                                        children: <Widget>[
-                                          Text(
-                                            _dateFormat.format(DateTime.parse(
-                                                    message.createdAt)
-                                                .toLocal()),
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color: AppColors.tipsTextColor),
-                                          ),
-                                          Builder(builder: (_) {
-                                            if (message.poi == null)
-                                              return SizedBox();
-
-                                            return Expanded(
-                                              child: Row(
-                                                children: <Widget>[
-                                                  SizedBox(
-                                                    width: AppDimensions
-                                                        .smallPadding,
-                                                  ),
-                                                  Image.asset(
-                                                      'images/ic_personaltab_activity_add_location.png'),
-                                                  SizedBox(
-                                                    width: AppDimensions
-                                                            .smallPadding /
-                                                        2,
-                                                  ),
-                                                  Expanded(
-                                                    child: Text(
-                                                      message.poi.name,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                          fontSize: 12,
-                                                          color: AppColors
-                                                              .tipsTextColor),
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                            );
-                                          }),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                      color: AppColors.blue,
-                                      borderRadius: BorderRadius.circular(12)),
-                                  child: GestureDetector(
-                                    onTap: () {},
-                                    behavior: HitTestBehavior.opaque,
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 5, horizontal: 15),
-                                      child: Text(
-                                        '关注',
-                                        style: TextStyle(
-                                            fontSize: 12, color: Colors.white),
-                                      ),
+                            SizedBox(
+                              width: AppDimensions.primaryPadding,
+                            ),
+                            Expanded(
+                              child: SizedBox(
+                                height: 32,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    ScreenNameWidget(
+                                      user: user,
+                                      textColor: AppColors.primaryTextColor,
+                                      fontSize: 10,
+                                      showVerify: false,
                                     ),
-                                  ),
+                                    Text(
+                                      '${user.statsCount.followedCount}人关注',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          color: AppColors.tipsTextColor,
+                                          fontSize: 10),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(
-                                  width: AppDimensions.primaryPadding / 2 * 3,
-                                ),
-                                Image.asset(
-                                    'images/ic_messages_collect_unselected.png'),
-                              ],
-                            ),
-                            SizedBox(
-                              height: AppDimensions.primaryPadding,
-                            ),
-                            RichTextWidget(
-                              message,
-                              showFullContent: true,
-                            ),
-                            Builder(builder: (_) {
-                              if (message.content.isEmpty) return SizedBox();
-                              return SizedBox(
-                                height: AppDimensions.smallPadding,
-                              );
-                            }),
-                            MessageBodyWidget(message),
-                            LinkInfoWidget(message),
-                            SizedBox(
-                              height: AppDimensions.primaryPadding,
-                            ),
-                            _createTopic(message),
-                            SizedBox(
-                              height: AppDimensions.primaryPadding,
-                            ),
-                            Divider(
-                              indent: AppDimensions.primaryPadding,
-                              height: 1,
-                              color: AppColors.dividerGrey,
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: AppDimensions.primaryPadding,
-                                  vertical: 15),
-                              child: CommentWidget(bodyItem: message),
-                            ),
+                              ),
+                            )
                           ],
                         ),
                       ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: BlocBuilder(
-                          bloc: _relatedBloc,
-                          builder: (_, MessageRelatedState state) {
-                            if (state is LoadedMessageRelatedListState) {
-                              return _RelatedWidget(
-                                listRelated: state.messageList,
-                              );
-                            }
-                            return SizedBox();
-                          }),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _CommentListWidget(
-                          message, _commentListBloc, _commentListKey),
-                    )
-                  ],
-                )),
+                      Container(
+                        width: 60,
+                        height: 28,
+                        margin: EdgeInsets.symmetric(
+                            horizontal: AppDimensions.primaryPadding),
+                        decoration: BoxDecoration(
+                            color: AppColors.blue,
+                            borderRadius: BorderRadius.circular(18)),
+                        child: Center(
+                          child: Text(
+                            '关注',
+                            style: TextStyle(fontSize: 12, color: Colors.white),
+                          ),
+                        ),
+                      )
+                    ],
+                  );
+                }
+
+                return NormalTitle('动态详情');
+              },
+            ),
+            body: NotificationListener(
+              onNotification: (ScrollNotification notification) {
+                if (notification.metrics != null &&
+                    notification.metrics.axis == Axis.vertical) {
+                  _scrollController.sink.add(notification.metrics.extentBefore);
+                }
+              },
+              child: EasyRefresh(
+                  refreshHeader: PhoenixHeader(
+                    key: _refreshHeaderKey,
+                  ),
+                  refreshFooter: BallPulseFooter(
+                    key: _loadMoreFooterKey,
+                    backgroundColor: Colors.transparent,
+                    color: AppColors.accentColor,
+                  ),
+                  autoLoad: true,
+                  onRefresh: () {
+                    _detailBloc.dispatch(FetchMessageDetailEvent(widget.id,
+                        ref: widget.ref, type: widget.type));
+                    _relatedBloc.dispatch(FetchMessageRelatedListEvent(
+                        widget.id,
+                        pageName: widget.pageName,
+                        type: widget.type));
+                    _commentListKey.currentState.refreshData();
+                  },
+                  loadMore: () {
+                    _commentListKey.currentState.refreshData(loadMore: true);
+                  },
+                  firstRefresh: false,
+                  child: CustomScrollView(
+                    slivers: <Widget>[
+                      SliverToBoxAdapter(
+                        child: Container(
+                          color: Colors.white,
+                          margin: EdgeInsets.only(
+                              bottom: AppDimensions.primaryPadding),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: AppDimensions.primaryPadding),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              SizedBox(
+                                height: AppDimensions.primaryPadding,
+                              ),
+                              Builder(builder: (_) {
+                                if (user == null) return SizedBox();
+
+                                return Column(
+                                  children: <Widget>[
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        Row(
+                                          children: <Widget>[
+                                            AvatarWidget(user),
+                                            SizedBox(
+                                              width:
+                                                  AppDimensions.primaryPadding,
+                                            ),
+                                          ],
+                                        ),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: <Widget>[
+                                              Builder(builder: (_) {
+                                                if (user != null) {
+                                                  return Column(
+                                                    children: <Widget>[
+                                                      ScreenNameWidget(
+                                                          user: user),
+                                                      SizedBox(
+                                                        height: AppDimensions
+                                                            .smallPadding,
+                                                      ),
+                                                    ],
+                                                  );
+                                                }
+
+                                                return SizedBox();
+                                              }),
+                                              Row(
+                                                children: <Widget>[
+                                                  Text(
+                                                    _dateFormat.format(
+                                                        DateTime.parse(message
+                                                                .createdAt)
+                                                            .toLocal()),
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .tipsTextColor),
+                                                  ),
+                                                  Builder(builder: (_) {
+                                                    if (message.poi == null)
+                                                      return SizedBox();
+
+                                                    return Expanded(
+                                                      child: Row(
+                                                        children: <Widget>[
+                                                          SizedBox(
+                                                            width: AppDimensions
+                                                                .smallPadding,
+                                                          ),
+                                                          Image.asset(
+                                                              'images/ic_personaltab_activity_add_location.png'),
+                                                          SizedBox(
+                                                            width: AppDimensions
+                                                                    .smallPadding /
+                                                                2,
+                                                          ),
+                                                          Expanded(
+                                                            child: Text(
+                                                              message.poi.name,
+                                                              maxLines: 1,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: TextStyle(
+                                                                  fontSize: 12,
+                                                                  color: AppColors
+                                                                      .tipsTextColor),
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    );
+                                                  }),
+                                                ],
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                              color: AppColors.blue,
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                          child: GestureDetector(
+                                            onTap: () {},
+                                            behavior: HitTestBehavior.opaque,
+                                            child: Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 5, horizontal: 15),
+                                              child: Text(
+                                                '关注',
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: AppDimensions.primaryPadding /
+                                              2 *
+                                              3,
+                                        ),
+                                        Image.asset(
+                                            'images/ic_messages_collect_unselected.png'),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: AppDimensions.primaryPadding,
+                                    ),
+                                  ],
+                                );
+                              }),
+                              RichTextWidget(
+                                message,
+                                showFullContent: true,
+                              ),
+                              Builder(builder: (_) {
+                                if (message.content.isEmpty) return SizedBox();
+                                return SizedBox(
+                                  height: AppDimensions.smallPadding,
+                                );
+                              }),
+                              MessageBodyWidget(message),
+                              SizedBox(
+                                height: AppDimensions.primaryPadding,
+                              ),
+                              Builder(builder: (_) {
+                                if (message.linkInfo == null) return SizedBox();
+
+                                return Column(
+                                  children: <Widget>[
+                                    LinkInfoWidget(message),
+                                    SizedBox(
+                                      height: AppDimensions.primaryPadding,
+                                    ),
+                                  ],
+                                );
+                              }),
+                              _createTopic(message),
+                              Divider(
+                                indent: AppDimensions.primaryPadding,
+                                height: 1,
+                                color: AppColors.dividerGrey,
+                              ),
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: AppDimensions.primaryPadding,
+                                    vertical: 15),
+                                child: CommentWidget(bodyItem: message),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: BlocBuilder(
+                            bloc: _relatedBloc,
+                            builder: (_, MessageRelatedState state) {
+                              if (state is LoadedMessageRelatedListState) {
+                                return _RelatedWidget(
+                                  listRelated: state.messageList,
+                                );
+                              }
+                              return SizedBox();
+                            }),
+                      ),
+                      SliverToBoxAdapter(
+                        child: _CommentListWidget(
+                            message, _commentListBloc, _commentListKey),
+                      )
+                    ],
+                  )),
+            ),
           );
         }
 
@@ -268,11 +391,14 @@ class _MessageDetailState extends State<MessageDetailPage>
   Widget _createTopic(Message message) {
     Topic topic = message.topic;
 
+    if (topic == null) return SizedBox();
+
     return Container(
       color: AppColors.topicBackground,
       padding: EdgeInsets.symmetric(
           horizontal: AppDimensions.primaryPadding,
           vertical: AppDimensions.smallPadding),
+      margin: EdgeInsets.only(bottom: AppDimensions.primaryPadding),
       child: Row(
         children: <Widget>[
           AppNetWorkImage(
@@ -337,6 +463,8 @@ class _RelatedWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (listRelated.isEmpty) return SizedBox();
+
     return Container(
       color: Colors.white,
       margin: EdgeInsets.only(bottom: AppDimensions.primaryPadding),
@@ -420,33 +548,51 @@ class _RelatedWidget extends StatelessWidget {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                        bottom: AppDimensions.smallPadding / 2),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Opacity(
-                                          child: Image.asset(
-                                            'images/ic_personal_tab_my_topic.png',
-                                            color: Colors.white,
-                                            colorBlendMode: BlendMode.color,
-                                            width: 18,
-                                            height: 18,
-                                          ),
-                                          opacity: 0.8,
-                                        ),
-                                        SizedBox(
-                                          width: AppDimensions.smallPadding / 2,
-                                        ),
-                                        Text(
-                                          item.topic.content,
+                                  Builder(builder: (_) {
+                                    if (item.topic == null) {
+                                      if (item.user != null) {
+                                        return Text(
+                                          '来自 ${item.user.screenName}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                              color: AppColors.tipsTextColor,
-                                              fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                              fontSize: 12,
+                                              color: AppColors.tipsTextColor),
+                                        );
+                                      }
+
+                                      return SizedBox();
+                                    }
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                          bottom:
+                                              AppDimensions.smallPadding / 2),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Opacity(
+                                            child: Image.asset(
+                                              'images/ic_personal_tab_my_topic.png',
+                                              color: Colors.white,
+                                              colorBlendMode: BlendMode.color,
+                                              width: 18,
+                                              height: 18,
+                                            ),
+                                            opacity: 0.8,
+                                          ),
+                                          SizedBox(
+                                            width:
+                                                AppDimensions.smallPadding / 2,
+                                          ),
+                                          Text(
+                                            item.topic.content,
+                                            style: TextStyle(
+                                                color: AppColors.tipsTextColor,
+                                                fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
                                 ],
                               ),
                             ),
@@ -516,7 +662,22 @@ class __CommentListWidgetState extends State<_CommentListWidget>
                   child: CommentListWidget('热门评论', state.hotCommentList),
                 );
               }),
-              CommentListWidget('最新评论', state.commentList),
+              Builder(builder: (_) {
+                if (state.commentList.isEmpty)
+                  return Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 50),
+                    child: Center(
+                      child: Text(
+                        '目前还没有评论',
+                        style: TextStyle(
+                            fontSize: 14, color: AppColors.tipsTextColor),
+                      ),
+                    ),
+                  );
+
+                return CommentListWidget('最新评论', state.commentList);
+              }),
             ],
           );
         }

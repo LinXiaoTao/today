@@ -106,12 +106,13 @@ Map<String, dynamic> _$UserAvatarToJson(UserAvatar instance) =>
 
 StatsCount _$StatsCountFromJson(Map json) {
   return StatsCount(
-      topicSubscribed: json['topicSubscribed'] as int,
-      topicCreated: json['topicCreated'] as int,
-      followedCount: json['followedCount'] as int,
-      followingCount: json['followingCount'] as int,
-      highlightedPersonalUpdates: json['highlightedPersonalUpdates'] as int,
-      liked: json['liked'] as int);
+      topicSubscribed: json['topicSubscribed'] as int ?? 0,
+      topicCreated: json['topicCreated'] as int ?? 0,
+      followedCount: json['followedCount'] as int ?? 0,
+      followingCount: json['followingCount'] as int ?? 0,
+      highlightedPersonalUpdates:
+          json['highlightedPersonalUpdates'] as int ?? 0,
+      liked: json['liked'] as int ?? 0);
 }
 
 Map<String, dynamic> _$StatsCountToJson(StatsCount instance) =>
