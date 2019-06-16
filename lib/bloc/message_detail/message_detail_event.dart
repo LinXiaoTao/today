@@ -9,15 +9,18 @@ abstract class MessageDetailEvent extends Equatable {
 
 class FetchMessageDetailEvent extends MessageDetailEvent {
   final String id;
-  final String ref;
+  final String userRef;
   final MessageType type;
+  final String topicRef;
 
   FetchMessageDetailEvent(this.id,
-      {this.ref = '', this.type = MessageType.ORIGINAL_POST})
-      : super([id, ref]);
+      {this.userRef = '',
+      this.topicRef = '',
+      this.type = MessageType.ORIGINAL_POST})
+      : super([id, userRef, topicRef]);
 
   @override
   String toString() {
-    return 'FetchMessageDetailEvent{id: $id, ref: $ref, type: $type}';
+    return 'FetchMessageDetailEvent{id: $id, ref: $userRef, type: $type, topicRef: $topicRef}';
   }
 }

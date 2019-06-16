@@ -135,18 +135,42 @@ Map<String, dynamic> _$AudioToJson(Audio instance) => <String, dynamic>{
     };
 
 RichTextContent _$RichTextContentFromJson(Map json) {
-  return RichTextContent((json['blocks'] as List)
-          ?.map((e) => e == null ? null : Block.fromJson(e as Map))
-          ?.toList() ??
-      []);
+  return RichTextContent(
+      (json['blocks'] as List)
+              ?.map((e) => e == null ? null : Block.fromJson(e as Map))
+              ?.toList() ??
+          [],
+      json['entityMap'] as Map ?? {});
 }
 
 Map<String, dynamic> _$RichTextContentToJson(RichTextContent instance) =>
-    <String, dynamic>{'blocks': instance.blocks};
+    <String, dynamic>{
+      'blocks': instance.blocks,
+      'entityMap': instance.entityMap
+    };
 
 Block _$BlockFromJson(Map json) {
-  return Block(json['text'] as String);
+  return Block(
+      json['text'] as String ?? '',
+      (json['entityRanges'] as List)
+              ?.map((e) => e == null ? null : EntityRanges.fromJson(e as Map))
+              ?.toList() ??
+          []);
 }
 
-Map<String, dynamic> _$BlockToJson(Block instance) =>
-    <String, dynamic>{'text': instance.text};
+Map<String, dynamic> _$BlockToJson(Block instance) => <String, dynamic>{
+      'text': instance.text,
+      'entityRanges': instance.entityRanges
+    };
+
+EntityRanges _$EntityRangesFromJson(Map json) {
+  return EntityRanges(json['key'] as String ?? '', json['length'] as int ?? 0,
+      json['offset'] as int ?? 0);
+}
+
+Map<String, dynamic> _$EntityRangesToJson(EntityRanges instance) =>
+    <String, dynamic>{
+      'key': instance.key,
+      'length': instance.length,
+      'offset': instance.offset
+    };

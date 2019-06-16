@@ -44,7 +44,7 @@ UserInfo _$UserInfoFromJson(Map json) {
       json['city'] as String ?? '',
       json['country'] as String ?? '',
       json['province'] as String ?? '',
-      json['ref'] as String,
+      json['ref'] as String ?? '',
       (json['profileTags'] as List)
               ?.map((e) => e == null ? null : TrailingIcons.fromJson(e as Map))
               ?.toList() ??

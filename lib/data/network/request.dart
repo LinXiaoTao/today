@@ -117,9 +117,21 @@ class ApiRequest {
   }
 
   /// 消息详情
-  static Future<Message> originalPostsGet(String id, {String userRef = ''}) {
-    return _dio.get('/1.0/originalPosts/get',
-        queryParameters: {'id': id, 'userRef': userRef}).then((value) {
+  static Future<Message> originalPostsGet(String id,
+      {String userRef = '', String topicRef = ''}) {
+    Map<String, dynamic> queryParameters = {'id': id};
+
+    if (userRef != null && userRef.isNotEmpty) {
+      queryParameters['userRef'] = userRef;
+    }
+
+    if (topicRef != null && topicRef.isNotEmpty) {
+      queryParameters['topicRef'] = topicRef;
+    }
+
+    return _dio
+        .get('/1.0/originalPosts/get', queryParameters: queryParameters)
+        .then((value) {
       return Message.fromJson(value.data['data']);
     });
   }
@@ -316,7 +328,7 @@ class ApiRequest {
       (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
           (client) {
         client.findProxy = (url) {
-          return "PROXY 172.21.12.127:8888";
+          return "PROXY 192.168.2.103:8888";
         };
         //抓Https包设置
         client.badCertificateCallback =

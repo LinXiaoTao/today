@@ -5,6 +5,7 @@ import 'package:today/data/model/recommendfeed.dart';
 import 'package:today/ui/page/picture_detail.dart';
 import 'package:today/ui/page/message/message_detail.dart';
 import 'package:today/ui/page/message/video_list.dart';
+import 'package:today/util/router.dart';
 import 'package:today/widget/widgets.dart';
 
 final intl.DateFormat _dateFormat = intl.DateFormat('MM/dd HH:mm');
@@ -141,19 +142,13 @@ class MessageItem extends StatelessWidget {
         color: Colors.white,
         child: InkWell(
           onTap: () {
-            String ref;
-            if (bodyItem.user != null) {
-              ref = bodyItem.user.ref;
-            } else if (bodyItem.topic != null) {
-              ref = bodyItem.topic.ref;
-            }
-
             Navigator.of(context).push(MaterialPageRoute(builder: (context) {
               return MessageDetailPage(
                 id: bodyItem.id,
-                ref: ref,
                 pageName: 'tab_recommend',
                 type: bodyItem.messageType,
+                userRef: bodyItem.user?.ref ?? '',
+                topicRef: bodyItem.topic?.ref ?? '',
               );
             }));
           },
@@ -230,6 +225,19 @@ class MessageItem extends StatelessWidget {
                           );
                         }),
                         MessageBodyWidget(bodyItem),
+                        Builder(builder: (_) {
+                          if (RePostWidget.hasData(bodyItem)) {
+                            return Column(
+                              children: <Widget>[
+                                RePostWidget(bodyItem),
+                                SizedBox(
+                                  height: AppDimensions.primaryPadding,
+                                ),
+                              ],
+                            );
+                          }
+                          return SizedBox();
+                        }),
                         LinkInfoWidget(bodyItem),
                         SizedBox(
                           height: AppDimensions.primaryPadding,
@@ -296,19 +304,14 @@ class MessageItem extends StatelessWidget {
                         color: Colors.grey[50],
                         child: InkWell(
                           onTap: () {
-                            String ref;
-                            if (bodyItem.user != null) {
-                              ref = bodyItem.user.ref;
-                            } else if (bodyItem.topic != null) {
-                              ref = bodyItem.topic.ref;
-                            }
                             Navigator.of(context)
                                 .push(MaterialPageRoute(builder: (_) {
                               return MessageDetailPage(
                                 id: bodyItem.id,
                                 pageName: 'tab_recommend',
-                                ref: ref,
                                 type: bodyItem.messageType,
+                                userRef: bodyItem.user?.ref ?? '',
+                                topicRef: bodyItem.topic?.ref ?? '',
                               );
                             }));
                           },
@@ -367,7 +370,8 @@ class MessageItem extends StatelessWidget {
 
                                   child.addAll(parseUrlsInText(
                                       topComment.urlsInText,
-                                      topComment.content));
+                                      topComment.content,
+                                      context));
 
                                   return Text.rich(
                                     TextSpan(children: child),
@@ -678,8 +682,8 @@ class RichTextWidget extends StatelessWidget {
         : LayoutBuilder(builder: (context, layout) {
             TextSpan content;
             if (bodyItem.urlsInText.isNotEmpty) {
-              List<TextSpan> child =
-                  parseUrlsInText(bodyItem.urlsInText, bodyItem.content);
+              List<TextSpan> child = parseUrlsInText(
+                  bodyItem.urlsInText, bodyItem.content, context);
 
               content = TextSpan(
                   children: child,
@@ -708,8 +712,6 @@ class RichTextWidget extends StatelessWidget {
                 .computeDistanceToActualBaseline(TextBaseline.ideographic);
 
             var textLine = painter.height / textHeight;
-
-//              debugPrint("text height = ${painter.height}; line = $textLine");
 
             if (!showFullContent && textLine > 8) {
               return Column(
@@ -1031,8 +1033,7 @@ class ScreenNameWidget extends StatelessWidget {
             user.screenName,
             style: TextStyle(color: textColor, fontSize: fontSize),
           ),
-          Builder(builder: (_) {
-            /// todo 优化
+          LayoutBuilder(builder: (_, layout) {
             if (user.isVerified && showVerify) {
               return LimitedBox(
                 maxWidth: 120,
@@ -1209,12 +1210,11 @@ class CommentItemWidget extends StatelessWidget {
                             }
 
                             child.addAll(parseUrlsInText(
-                                comment.urlsInText, comment.content));
+                                comment.urlsInText, comment.content, context));
 
                             return Text.rich(TextSpan(
                                 children: child,
                                 style: TextStyle(
-                                    fontSize: 13,
                                     color: AppColors.primaryTextColor)));
                           },
                         ),
@@ -1258,8 +1258,8 @@ class CommentItemWidget extends StatelessWidget {
                     }
 
                     if (data.content.isNotEmpty) {
-                      child.addAll(
-                          parseUrlsInText(data.urlsInText, data.content));
+                      child.addAll(parseUrlsInText(
+                          data.urlsInText, data.content, context));
                     }
 
                     if (data.pictures.isNotEmpty) {
@@ -1409,7 +1409,9 @@ class RePostWidget extends StatelessWidget {
   static hasData(Message message) {
     return (message.messageType == MessageType.RE_POST &&
             message.target != null) ||
-        (message.messageType == MessageType.ANSWER && message.question != null);
+        (message.messageType == MessageType.ANSWER &&
+            message.question != null) ||
+        (message.messageType == MessageType.QUESTION);
   }
 
   @override
@@ -1427,6 +1429,11 @@ class RePostWidget extends StatelessWidget {
       if (message.messageType == MessageType.ANSWER) {
         target = message.question;
         content = target.title;
+      }
+
+      if (message.messageType == MessageType.QUESTION) {
+        target = message;
+        content = message.title;
       }
 
       if (target.messageStatus == MessageStatus.DELETED) {
@@ -1475,22 +1482,16 @@ class RePostWidget extends StatelessWidget {
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          String ref;
-          if (target.user != null) {
-            ref = target.user.ref;
-          } else if (target.topic != null) {
-            ref = target.topic.ref;
-          }
-
           if (message.messageType == MessageType.ANSWER) return;
 
           /// todo 问题详情
           Navigator.of(context).push(MaterialPageRoute(builder: (_) {
             return MessageDetailPage(
               id: target.id,
-              ref: ref,
               pageName: pageName,
               type: target.messageType,
+              userRef: target.user?.ref ?? '',
+              topicRef: target.topic?.ref ?? '',
             );
           }));
         },
@@ -1506,11 +1507,21 @@ class RePostWidget extends StatelessWidget {
                   Stack(
                     alignment: Alignment.center,
                     children: <Widget>[
-                      AppNetWorkImage(
-                        src: picUrl,
-                        width: 45,
-                        height: 45,
-                      ),
+                      Builder(builder: (_) {
+                        if (target.messageType == MessageType.QUESTION) {
+                          return Container(
+                            width: 45,
+                            height: 45,
+                            color: AppColors.blue,
+                          );
+                        }
+
+                        return AppNetWorkImage(
+                          src: picUrl,
+                          width: 45,
+                          height: 45,
+                        );
+                      }),
                       Builder(builder: (_) {
                         if (picType == 'video') {
                           return Image.asset(
@@ -1528,7 +1539,8 @@ class RePostWidget extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      (target.user == null
+                      (target.user == null ||
+                                  target.messageType == MessageType.QUESTION
                               ? ''
                               : '${target.user.screenName}：') +
                           '$content',
@@ -1544,7 +1556,9 @@ class RePostWidget extends StatelessWidget {
                 height: AppDimensions.smallPadding,
               ),
               Builder(builder: (_) {
-                if (target.topic == null) return SizedBox();
+                if (target.topic == null ||
+                    target.messageType == MessageType.QUESTION)
+                  return SizedBox();
 
                 return Column(
                   children: <Widget>[
@@ -1596,7 +1610,59 @@ class AnswerWidget extends StatelessWidget {
       final List<TextSpan> child = [];
 
       for (var block in blocks) {
-        child.add(TextSpan(text: block.text));
+        if (block.entityRanges.isEmpty) {
+          child.add(TextSpan(text: block.text));
+        } else {
+          int start = 0;
+          block.entityRanges.forEach((item) {
+            if (message.richtextContent.entityMap.containsKey(item.key)) {
+              var entity = message.richtextContent.entityMap[item.key];
+              Map data = entity['data'];
+              // todo 补充
+              if (entity['type'] == 'IMAGE') {
+                if (item.offset > start) {
+                  child.add(
+                      TextSpan(text: block.text.substring(start, item.offset)));
+                  start = item.offset - 1;
+                }
+
+                final Picture picture = Picture.fromJson(data['pictureUrl']);
+
+                child.add(ImageSpan(
+                  AssetImage('images/ic_feedback_sendpic.png'),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (context) {
+                        return PictureDetailPage(
+                          [picture],
+                        );
+                      }));
+                    },
+                  imageWidth: 15,
+                  imageHeight: 15,
+                  color: AppColors.blue,
+                  margin:
+                      EdgeInsets.only(right: AppDimensions.smallPadding / 2),
+                ));
+
+                child.add(TextSpan(
+                  text: '查看图片',
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (context) {
+                        return PictureDetailPage(
+                          [picture],
+                        );
+                      }));
+                    },
+                  style: TextStyle(color: AppColors.blue),
+                ));
+              }
+            }
+          });
+        }
       }
 
       return RealRichText(
@@ -1609,7 +1675,8 @@ class AnswerWidget extends StatelessWidget {
   }
 }
 
-List<TextSpan> parseUrlsInText(List<UrlsInText> urlsInText, String content) {
+List<TextSpan> parseUrlsInText(
+    List<UrlsInText> urlsInText, String content, BuildContext context) {
   List<TextSpan> child = [];
 
   List<int> indexList = [];
@@ -1634,11 +1701,16 @@ List<TextSpan> parseUrlsInText(List<UrlsInText> urlsInText, String content) {
       cur = indexList[indexPos];
     } else {
       int startIndex = indexList[indexPos];
-      int endIndex = startIndex + urlsInText[indexPos].originalUrl.length;
+      var item = urlsInText[indexPos];
+      int endIndex = startIndex + item.originalUrl.length;
 
       child.add(TextSpan(
-          text: urlsInText[indexPos].title,
-          style: TextStyle(color: AppColors.blue)));
+          text: item.title,
+          style: TextStyle(color: AppColors.blue),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              AppRouter.router(item.url, context);
+            }));
       cur = endIndex;
       indexPos++;
     }

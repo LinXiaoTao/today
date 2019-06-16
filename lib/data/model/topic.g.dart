@@ -52,7 +52,7 @@ Topic _$TopicFromJson(Map json) {
       json['subscribersTextSuffix'] as String,
       json['subscribersDescription'] as String,
       json['intro'] as String,
-      json['ref'] as String,
+      json['ref'] as String ?? '',
       json['involvedUsers'] == null
           ? null
           : InvolvedUsers.fromJson(json['involvedUsers'] as Map));

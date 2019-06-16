@@ -217,8 +217,10 @@ class Audio {
 class RichTextContent {
   @JsonKey(defaultValue: [])
   final List<Block> blocks;
+  @JsonKey(defaultValue: {})
+  final Map entityMap;
 
-  RichTextContent(this.blocks);
+  RichTextContent(this.blocks, this.entityMap);
 
   factory RichTextContent.fromJson(Map json) => _$RichTextContentFromJson(json);
 
@@ -227,11 +229,30 @@ class RichTextContent {
 
 @JsonSerializable()
 class Block {
+  @JsonKey(defaultValue: '')
   final String text;
+  @JsonKey(defaultValue: [])
+  final List<EntityRanges> entityRanges;
 
-  Block(this.text);
+  Block(this.text, this.entityRanges);
 
   factory Block.fromJson(Map json) => _$BlockFromJson(json);
 
   Map<String, dynamic> toJson() => _$BlockToJson(this);
+}
+
+@JsonSerializable()
+class EntityRanges {
+  @JsonKey(defaultValue: '')
+  final String key;
+  @JsonKey(defaultValue: 0)
+  final int length;
+  @JsonKey(defaultValue: 0)
+  final int offset;
+
+  EntityRanges(this.key, this.length, this.offset);
+
+  factory EntityRanges.fromJson(Map json) => _$EntityRangesFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EntityRangesToJson(this);
 }

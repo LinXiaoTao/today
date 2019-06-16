@@ -72,6 +72,7 @@ class UserInfo {
   @JsonKey(defaultValue: '')
   final String province;
 
+  @JsonKey(defaultValue: '')
   final String ref;
 
   @JsonKey(defaultValue: [])

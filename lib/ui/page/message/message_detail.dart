@@ -9,15 +9,17 @@ final DateFormat _dateFormat = DateFormat('MM/dd HH:mm');
 /// 消息详情
 class MessageDetailPage extends StatefulWidget {
   final String id;
-  final String ref;
+  final String userRef;
   final String pageName;
   final MessageType type;
+  final String topicRef;
 
   MessageDetailPage(
       {@required this.id,
-      this.ref = '',
+      this.userRef = '',
       this.pageName,
-      this.type = MessageType.ORIGINAL_POST});
+      this.type = MessageType.ORIGINAL_POST,
+      this.topicRef = ''});
 
   @override
   State<StatefulWidget> createState() {
@@ -55,8 +57,8 @@ class _MessageDetailState extends State<MessageDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _detailBloc.dispatch(
-        FetchMessageDetailEvent(widget.id, ref: widget.ref, type: widget.type));
+    _detailBloc.dispatch(FetchMessageDetailEvent(widget.id,
+        userRef: widget.userRef, topicRef: widget.topicRef, type: widget.type));
     _relatedBloc.dispatch(FetchMessageRelatedListEvent(widget.id,
         pageName: widget.pageName, type: widget.type));
   }
@@ -164,7 +166,9 @@ class _MessageDetailState extends State<MessageDetailPage>
                   autoLoad: true,
                   onRefresh: () {
                     _detailBloc.dispatch(FetchMessageDetailEvent(widget.id,
-                        ref: widget.ref, type: widget.type));
+                        userRef: widget.userRef,
+                        topicRef: widget.topicRef,
+                        type: widget.type));
                     _relatedBloc.dispatch(FetchMessageRelatedListEvent(
                         widget.id,
                         pageName: widget.pageName,
@@ -213,7 +217,8 @@ class _MessageDetailState extends State<MessageDetailPage>
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: <Widget>[
-                                              Builder(builder: (_) {
+                                              LayoutBuilder(
+                                                  builder: (_, layout) {
                                                 if (user != null) {
                                                   return Column(
                                                     children: <Widget>[
@@ -493,114 +498,131 @@ class _RelatedWidget extends StatelessWidget {
                 return PageView.builder(
                   itemBuilder: (_, index) {
                     Message item = listRelated[index];
-                    return Transform.translate(
-                      offset: Offset(-(layout.maxWidth * 0.1 / 2), 0),
-                      child: Row(
-                        children: <Widget>[
-                          Builder(
-                            builder: (_) {
-                              String imgUrl = '';
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(builder: (_) {
+                          return MessageDetailPage(
+                            id: item.id,
+                            pageName: 'tab_recommend',
+                            type: item.messageType,
+                            userRef: item.user?.ref ?? '',
+                            topicRef: item.topic?.ref ?? '',
+                          );
+                        }));
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Transform.translate(
+                        offset: Offset(-(layout.maxWidth * 0.1 / 2), 0),
+                        child: Row(
+                          children: <Widget>[
+                            Builder(
+                              builder: (_) {
+                                String imgUrl = '';
 
-                              if (item.video != null) {
-                                imgUrl = item.video.image.thumbnailUrl;
-                              } else if (item.pictures.isNotEmpty) {
-                                imgUrl = item.pictures.first.thumbnailUrl;
-                              } else if (item.linkInfo != null) {
-                                imgUrl = item.linkInfo.pictureUrl;
-                              } else if (item.user != null) {
-                                imgUrl = item.user.avatarImage.thumbnailUrl;
-                              }
+                                if (item.video != null) {
+                                  imgUrl = item.video.image.thumbnailUrl;
+                                } else if (item.pictures.isNotEmpty) {
+                                  imgUrl = item.pictures.first.thumbnailUrl;
+                                } else if (item.linkInfo != null) {
+                                  imgUrl = item.linkInfo.pictureUrl;
+                                } else if (item.user != null) {
+                                  imgUrl = item.user.avatarImage.thumbnailUrl;
+                                }
 
-                              if (imgUrl.isEmpty) {
-                                return SizedBox();
-                              }
+                                if (imgUrl.isEmpty) {
+                                  return SizedBox();
+                                }
 
-                              return Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  AppNetWorkImage(
-                                    src: imgUrl,
-                                    height: 70,
-                                    width: 70,
-                                  ),
-                                  _createImageType(listRelated[index]),
-                                ],
-                              );
-                            },
-                          ),
-                          SizedBox(
-                            width: AppDimensions.primaryPadding,
-                          ),
-                          Expanded(
-                            child: SizedBox(
-                              height: 70,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                        top: AppDimensions.smallPadding / 2),
-                                    child: Text(
-                                      item.content,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                return Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    AppNetWorkImage(
+                                      src: imgUrl,
+                                      height: 70,
+                                      width: 70,
                                     ),
-                                  ),
-                                  Builder(builder: (_) {
-                                    if (item.topic == null) {
-                                      if (item.user != null) {
-                                        return Text(
-                                          '来自 ${item.user.screenName}',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.tipsTextColor),
-                                        );
-                                      }
-
-                                      return SizedBox();
-                                    }
-                                    return Padding(
+                                    _createImageType(listRelated[index]),
+                                  ],
+                                );
+                              },
+                            ),
+                            SizedBox(
+                              width: AppDimensions.primaryPadding,
+                            ),
+                            Expanded(
+                              child: SizedBox(
+                                height: 70,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Padding(
                                       padding: EdgeInsets.only(
-                                          bottom:
-                                              AppDimensions.smallPadding / 2),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Opacity(
-                                            child: Image.asset(
-                                              'images/ic_personal_tab_my_topic.png',
-                                              color: Colors.white,
-                                              colorBlendMode: BlendMode.color,
-                                              width: 18,
-                                              height: 18,
-                                            ),
-                                            opacity: 0.8,
-                                          ),
-                                          SizedBox(
-                                            width:
-                                                AppDimensions.smallPadding / 2,
-                                          ),
-                                          Text(
-                                            item.topic.content,
-                                            style: TextStyle(
-                                                color: AppColors.tipsTextColor,
-                                                fontSize: 12),
-                                          ),
-                                        ],
+                                          top: AppDimensions.smallPadding / 2),
+                                      child: Text(
+                                        item.content,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    );
-                                  }),
-                                ],
+                                    ),
+                                    Builder(builder: (_) {
+                                      if (item.topic == null) {
+                                        if (item.user != null) {
+                                          return Text(
+                                            '来自 ${item.user.screenName}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.tipsTextColor),
+                                          );
+                                        }
+
+                                        return SizedBox();
+                                      }
+                                      return Padding(
+                                        padding: EdgeInsets.only(
+                                            bottom:
+                                                AppDimensions.smallPadding / 2),
+                                        child: Row(
+                                          children: <Widget>[
+                                            Opacity(
+                                              child: Image.asset(
+                                                'images/ic_personal_tab_my_topic.png',
+                                                color: Colors.white,
+                                                colorBlendMode: BlendMode.color,
+                                                width: 18,
+                                                height: 18,
+                                              ),
+                                              opacity: 0.8,
+                                            ),
+                                            SizedBox(
+                                              width:
+                                                  AppDimensions.smallPadding /
+                                                      2,
+                                            ),
+                                            Text(
+                                              item.topic.content,
+                                              style: TextStyle(
+                                                  color:
+                                                      AppColors.tipsTextColor,
+                                                  fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: AppDimensions.primaryPadding,
-                          ),
-                        ],
+                            SizedBox(
+                              width: AppDimensions.primaryPadding,
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },

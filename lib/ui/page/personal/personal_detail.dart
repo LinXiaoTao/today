@@ -654,11 +654,6 @@ class _TabContentWidgetState extends State<_TabContentWidget>
       }
       debugPrint('state = $state');
     });
-    widget.bloc.event.listen((event) {
-      if (event is FetchPersonalUpdateEvent) {
-        Fluttertoast.showToast(msg: '加载数据');
-      }
-    });
     super.initState();
   }
 
@@ -1017,6 +1012,8 @@ class _TabActivityWidget extends StatelessWidget {
                                 id: item.id,
                                 pageName: 'personal_page',
                                 type: item.messageType,
+                                userRef: item.user?.ref ?? '',
+                                topicRef: item.topic?.ref ?? '',
                               );
                             }));
                           },
@@ -1073,6 +1070,16 @@ class _TabActivityWidget extends StatelessWidget {
                                                       MessageType.ANSWER) {
                                                     return Text(
                                                       '回答了问题',
+                                                      style: TextStyle(
+                                                          color: AppColors
+                                                              .tipsTextColor),
+                                                    );
+                                                  }
+
+                                                  if (item.messageType ==
+                                                      MessageType.QUESTION) {
+                                                    return Text(
+                                                      '提了问题',
                                                       style: TextStyle(
                                                           color: AppColors
                                                               .tipsTextColor),
@@ -1151,7 +1158,9 @@ class _TabActivityWidget extends StatelessWidget {
 
                                         if (item.content.isNotEmpty) {
                                           child.addAll(parseUrlsInText(
-                                              item.urlsInText, item.content));
+                                              item.urlsInText,
+                                              item.content,
+                                              context));
                                         }
 
                                         if (child.isEmpty) {

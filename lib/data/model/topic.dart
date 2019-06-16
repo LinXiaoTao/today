@@ -106,6 +106,7 @@ class Topic {
   final String intro;
 
   /// PERSONAL_UPDATE_RECOMMENDATION
+  @JsonKey(defaultValue: '')
   final String ref;
 
   final InvolvedUsers involvedUsers;
@@ -118,6 +119,7 @@ class Topic {
     return '${(subscribersCount / 10000).toStringAsFixed(0)}万+';
   }
 
+  @JsonKey(ignore: true)
   bool get subscribersState {
     return subscribedStatusRawValue == 2;
   }
