@@ -1,0 +1,186 @@
+#! /usr/bin/env bash
+
+default_distributionUrl="https://github.com/flutter/flutter"
+default_download_flutter_sdk_dir=".flutter"
+default_flutterChannel="stable"
+default_androidDir="android"
+default_iosDir="ios"
+
+properties=''
+if test -e 'wrapper/flutter-wrapper.properties'
+then
+    properties='wrapper/flutter-wrapper.properties'
+else
+    echo '请确认 wrapper/flutter-wrapper.properties 是否存在'
+    exit -1
+fi
+
+# 读取 flutter-wrapper.properties 中的配置
+
+distributionUrl=""
+flutterVersion=""
+flutterChannel=""
+androidDir=""
+iosDir=""
+
+IFS=$'\n'
+
+for line in `cat $properties`
+do
+    # 忽略注释
+    comment=`echo "$line" | grep '^#'`
+    if [ -n "$comment" ]
+    then
+        echo "忽略注释"
+        continue
+    fi
+    key=`echo $line | cut -d '=' -f1`
+    value=`echo $line | cut -d '=' -f2`
+    case $key in
+    "distributionUrl")
+        distributionUrl="$value"
+        ;;
+    "flutterVersion")
+        flutterVersion="$value"
+        ;;
+    "flutterChannel")
+        flutterChannel="$value"
+        ;;
+    "androidDir")
+        androidDir="$value"
+        ;;
+    "iosDir")
+        iosDir="$value"
+        ;;
+    *)
+        echo "$key 选项不被支持，请确认"
+        ;;
+    esac
+done
+
+
+if [  -z $distributionUrl ]
+then
+    echo "distributionUrl 为空，将使用默认值 $default_distributionUrl"
+    distributionUrl=default_distributionUrl
+fi
+
+if [ -z $flutterVersion ]
+then
+    echo "必须指定 flutterVersion"
+    exit -1
+fi
+
+if [ -z $flutterChannel ]
+then
+    echo "flutterChannel 为空，将使用默认值 $default_flutterChannel"
+    flutterChannel=default_flutterChannel
+fi
+
+if [ -z $androidDir ]
+then
+    echo "androidDir 为空，将使用默认值 $default_androidDir"
+    androidDir=default_androidDir
+fi
+
+if [ -z $iosDir ]
+then
+    echo "iosDir 为空，将使用默认值 $default_iosDir"
+    iosDir=default_iosDir
+fi
+
+# 判断是否需要下载 SDK
+if [ ! -d $default_download_flutter_sdk_dir ]
+then
+    echo "创建 $default_download_flutter_sdk_dir 目录"
+    mkdir $default_download_flutter_sdk_dir
+fi
+
+flutter_command="$default_download_flutter_sdk_dir/bin/flutter"
+
+export PUB_HOSTED_URL=https://pub.flutter-io.cn
+export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+
+if [ ! -r $flutter_command ]
+then
+    # 下载 SDK
+    echo "开始下载 SDK..."
+    git clone $distributionUrl $default_download_flutter_sdk_dir
+    if [ -r $flutter_command ]
+    then
+        echo "SDK 下载成功"
+        $flutter_command doctor -v
+    else
+        echo "SDK 下载失败"
+        exit -1
+    fi
+fi
+
+cur_flutter_version=`$flutter_command --version | grep '^Flutter' | cut -d ' ' -f2`
+
+setupSDK(){
+    # 修改 flutter.sdk
+    local_properties=`find $androidDir -name "local.properties"`
+    if [ -z $local_properties ]
+    then
+        echo "请先创建 local.properties"
+        exit -1
+    else
+        # 删除旧的 flutter.sdk
+        for line in $local_properties
+        do
+            key=`echo $line | cut -d '=' -f1`
+            if [ key == "flutter.sdk" ]
+            then
+                # 删除它
+                sed "/^$line/d" $local_properties
+            fi
+        done
+        # 插入新的 flutter.sdk
+        echo "flutter.sdk=`pwd`/$default_download_flutter_sdk_dir" > $local_properties
+    fi
+    # 修改 Generated.xcconfig
+    generated_xconfig=`find $iosDir -name "Generated.xconfig"`
+    if [ -z $generated_xconfig ]
+    then
+        echo "请先创建 Generated.xconfig"
+        exit -1
+    else
+        # 删除旧的 FLUTTER_ROOT
+        for line in $generated_xconfig
+        do
+            key=`echo $line | cut -d '=' -f1`
+            if [ key == "FLUTTER_ROOT" ]
+            then
+                # 删除它
+                sed "/^$line/d" $generated_xconfig
+            fi
+        done
+        # 插入新的 FLUTTER_ROOT
+        echo "FLUTTER_ROOT=`pwd`/$default_download_flutter_sdk_dir" > $generated_xconfig
+    fi
+}
+
+if [ $cur_flutter_version == $flutterVersion ]
+then
+    # 执行 flutter 命令
+    $flutter_command $*
+    setupSDK
+else
+    echo "当前版本为 ${cur_flutter_version}，切换版本为：${flutterVersion}"
+    $flutter_command channel $flutterChannel
+    $flutter_command upgrade
+    $flutter_command version -f "v$flutterVersion"
+    $flutter_command doctor -v  
+    cur_flutter_version=`$flutter_command --version | grep '^Flutter' | cut -d ' ' -f2`
+    if [ $cur_flutter_version == $flutterVersion ]
+    then
+        echo "切换版本成功"
+        # 执行 flutter 命令
+        $flutter_command $*
+        setupSDK
+    else
+        echo "切换版本失败"
+    fi
+fi
+

@@ -128,6 +128,17 @@ class Topic {
     subscribedStatusRawValue = state ? 2 : 0;
   }
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Topic &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          subscribedStatusRawValue == other.subscribedStatusRawValue;
+
+  @override
+  int get hashCode => id.hashCode ^ subscribedStatusRawValue.hashCode;
+
   Topic(
       this.id,
       this.type,
