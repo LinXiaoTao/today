@@ -1,7 +1,0 @@
-builders:
-  copyBuilder:
-    import: "package:script/builder.dart"
-    builder_factories: ["copyBuilder"]
-    build_extensions: {".txt": [".txt.copy"]}
-    build_to: source
-    auto_apply: root_package
