@@ -322,18 +322,18 @@ class ApiRequest {
       key_device_id: deviceId
     }));
 
-    /// proxy
+    // proxy
     if (!const bool.fromEnvironment('dart.vm.product')) {
-      /// 不是 release
-      (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-          (client) {
-        client.findProxy = (url) {
-          return "PROXY 192.168.2.103:8888";
-        };
-        //抓Https包设置
-        client.badCertificateCallback =
-            (X509Certificate cert, String host, int port) => true;
-      };
+      // 不是 release，可设置代理
+//      (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+//          (client) {
+//        client.findProxy = (url) {
+//          return "PROXY 192.168.2.103:8888";
+//        };
+//        //抓Https包设置
+//        client.badCertificateCallback =
+//            (X509Certificate cert, String host, int port) => true;
+//      };
     }
 
     /// business
