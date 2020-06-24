@@ -22,8 +22,8 @@ class _CommentDetailPageState extends State<CommentDetailPage>
 
   @override
   void dispose() {
-    _detailBloc?.dispose();
-    _commentReplyBloc?.dispose();
+    _detailBloc?.close();
+    _commentReplyBloc?.close();
     super.dispose();
   }
 
@@ -44,7 +44,7 @@ class _CommentDetailPageState extends State<CommentDetailPage>
                   ),
                   firstRefresh: false,
                   loadMore: () {
-                    _commentReplyBloc.dispatch(FetchCommentReplyEvent(
+                    _commentReplyBloc.add(FetchCommentReplyEvent(
                         widget.comment.id,
                         targetType: widget.comment.targetType,
                         loadMore: true));
@@ -101,9 +101,9 @@ class _CommentDetailPageState extends State<CommentDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _detailBloc.dispatch(FetchCommentDetailEvent(widget.comment.id,
+    _detailBloc.add(FetchCommentDetailEvent(widget.comment.id,
         targetType: widget.comment.targetType));
-    _commentReplyBloc.dispatch(FetchCommentReplyEvent(widget.comment.id,
+    _commentReplyBloc.add(FetchCommentReplyEvent(widget.comment.id,
         targetType: widget.comment.targetType));
   }
 }

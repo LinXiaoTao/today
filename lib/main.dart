@@ -7,6 +7,7 @@ import 'package:today/ui/ui_base.dart';
 import 'package:today/data/network/request.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await LoginState.init();
   await ApiRequest.initDio();
   runApp(TodayApp());

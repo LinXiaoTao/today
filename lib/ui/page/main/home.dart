@@ -34,9 +34,9 @@ class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _recommendBloc.dispatch(FetchRecommendEvent());
-    _shortcutBloc.dispatch(FetchShortcutEvent());
-    _searchPlaceholderBloc.dispatch(FetchSearchPlaceHolderEvent());
+    _recommendBloc.add(FetchRecommendEvent());
+    _shortcutBloc.add(FetchShortcutEvent());
+    _searchPlaceholderBloc.add(FetchSearchPlaceHolderEvent());
   }
 
   @override
@@ -49,9 +49,9 @@ class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
   @override
   void didChangeDependencies() {
     _recommendBloc = BlocProvider.of(context);
-    _recommendBloc.event.listen((event) {
+    _recommendBloc.listen((event) {
       if (event is FetchRecommendEvent) {
-        if (!event.loadMore) {
+        if (!(event as FetchRecommendEvent).loadMore) {
           _scrollController.animateTo(0,
               curve: Curves.fastLinearToSlowEaseIn,
               duration: Duration(milliseconds: 300));
@@ -63,101 +63,102 @@ class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProviderTree(
-      blocProviders: [
-        BlocProvider<SearchPlaceholderBloc>(
-          bloc: _searchPlaceholderBloc,
-        ),
-        BlocProvider<ShortcutBloc>(
-          bloc: _shortcutBloc,
-        ),
-      ],
-      child: Column(
-        children: <Widget>[
-          Container(
-            color: Color(0xffffe411),
-            height: MediaQuery.of(context).padding.top,
-          ),
-          Expanded(
-            child: NotificationListener<ScrollUpdateNotification>(
-              onNotification: (notification) {
-                BlocProvider.of<NavigationBarBloc>(context).dispatch(
-                    SwitchHomeNavigationBarEvent(
-                        refreshMode: _scrollController.position.pixels > 2000));
-              },
-              child: EasyRefresh(
-                key: _refreshKey,
-                firstRefresh: false,
-                refreshHeader: PhoenixHeader(
-                  key: _refreshHeaderKey,
-                ),
-                refreshFooter: BallPulseFooter(
-                  key: _loadMoreFooterKey,
-                  backgroundColor: Colors.transparent,
-                  color: AppColors.accentColor,
-                ),
-                onRefresh: () {
-                  _recommendBloc.dispatch(FetchRecommendEvent());
+    return BlocProvider<SearchPlaceholderBloc>(
+      create: (_) {
+        return _searchPlaceholderBloc;
+      },
+      child: BlocProvider<ShortcutBloc>(
+        create: (_) {
+          return _shortcutBloc;
+        },
+        child: Column(
+          children: <Widget>[
+            Container(
+              color: Color(0xffffe411),
+              height: MediaQuery.of(context).padding.top,
+            ),
+            Expanded(
+              child: NotificationListener<ScrollUpdateNotification>(
+                onNotification: (notification) {
+                  BlocProvider.of<NavigationBarBloc>(context).add(
+                      SwitchHomeNavigationBarEvent(
+                          refreshMode:
+                              _scrollController.position.pixels > 2000));
                 },
-                loadMore: () {
-                  _recommendBloc.dispatch(FetchRecommendEvent(loadMore: true));
-                },
-                autoLoad: true,
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  slivers: <Widget>[
-                    SliverPersistentHeader(
-                      floating: true,
-                      delegate: _SliverSearchDelegate(
-                          maxHeight: 55,
-                          child: _SearchWidget(55, _searchPlaceholderBloc)),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _ShortcutsWidget(_shortcutBloc),
-                    ),
-                    BlocListener(
-                      bloc: _recommendBloc,
-                      listener: (_, state) {
-                        if (state is LoadedRecommendState) {
-                          if (state.toastMsg.isEmpty) return;
-                          Fluttertoast.showToast(
-                              msg: state.toastMsg,
-                              toastLength: Toast.LENGTH_LONG,
-                              backgroundColor: AppColors.accentColor,
-                              textColor: AppColors.primaryTextColor,
-                              gravity: ToastGravity.TOP,
-                              fontSize: 14);
-                        }
-                      },
-                      child: BlocBuilder(
-                          bloc: _recommendBloc,
-                          builder: (_, RecommendState state) {
-                            if (state is LoadedRecommendState) {
-                              return SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                    (context, index) {
-                                  return MessageItem(
-                                    state.recommendList[index],
-                                    needMarginTop: (_recommendBloc
-                                            .recommendList[max(0, index - 1)]
-                                            .type ==
-                                        'RECOMMENDED_MESSAGE'),
-                                  );
-                                }, childCount: state.recommendList.length),
-                              );
-                            }
+                child: EasyRefresh(
+                  key: _refreshKey,
+                  firstRefresh: false,
+                  refreshHeader: PhoenixHeader(
+                    key: _refreshHeaderKey,
+                  ),
+                  refreshFooter: BallPulseFooter(
+                    key: _loadMoreFooterKey,
+                    backgroundColor: Colors.transparent,
+                    color: AppColors.accentColor,
+                  ),
+                  onRefresh: () {
+                    _recommendBloc.add(FetchRecommendEvent());
+                  },
+                  loadMore: () {
+                    _recommendBloc.add(FetchRecommendEvent(loadMore: true));
+                  },
+                  autoLoad: true,
+                  child: CustomScrollView(
+                    controller: _scrollController,
+                    slivers: <Widget>[
+                      SliverPersistentHeader(
+                        floating: true,
+                        delegate: _SliverSearchDelegate(
+                            maxHeight: 55,
+                            child: _SearchWidget(55, _searchPlaceholderBloc)),
+                      ),
+                      SliverToBoxAdapter(
+                        child: _ShortcutsWidget(_shortcutBloc),
+                      ),
+                      BlocListener(
+                        bloc: _recommendBloc,
+                        listener: (_, state) {
+                          if (state is LoadedRecommendState) {
+                            if (state.toastMsg.isEmpty) return;
+                            Fluttertoast.showToast(
+                                msg: state.toastMsg,
+                                toastLength: Toast.LENGTH_LONG,
+                                backgroundColor: AppColors.accentColor,
+                                textColor: AppColors.primaryTextColor,
+                                gravity: ToastGravity.TOP,
+                                fontSize: 14);
+                          }
+                        },
+                        child: BlocBuilder(
+                            bloc: _recommendBloc,
+                            builder: (_, RecommendState state) {
+                              if (state is LoadedRecommendState) {
+                                return SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                      (context, index) {
+                                    return MessageItem(
+                                      state.recommendList[index],
+                                      needMarginTop: (_recommendBloc
+                                              .recommendList[max(0, index - 1)]
+                                              .type ==
+                                          'RECOMMENDED_MESSAGE'),
+                                    );
+                                  }, childCount: state.recommendList.length),
+                                );
+                              }
 
-                            return SliverToBoxAdapter(
-                              child: PageLoadingWidget(),
-                            );
-                          }),
-                    ),
-                  ],
+                              return SliverToBoxAdapter(
+                                child: PageLoadingWidget(),
+                              );
+                            }),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -323,7 +324,11 @@ class _ShortcutsWidget extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-                  return BlocProvider(bloc: bloc, child: TopicListPage());
+                  return BlocProvider(
+                      create: (_) {
+                        return bloc;
+                      },
+                      child: TopicListPage());
                 }));
               },
               child: Container(

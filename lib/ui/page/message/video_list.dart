@@ -24,13 +24,13 @@ class _VideoListPageState extends State<VideoListPage>
 
   @override
   void dispose() {
-    _videoListBloc?.dispose();
+    _videoListBloc?.close();
     super.dispose();
   }
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _videoListBloc.dispatch(FetchVideoListEvent(widget.message));
+    _videoListBloc.add(FetchVideoListEvent(widget.message));
   }
 
   _autoPlay() {

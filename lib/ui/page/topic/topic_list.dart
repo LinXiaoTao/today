@@ -13,12 +13,12 @@ class _TopicListPageState extends State<TopicListPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _bloc.dispatch(FetchTopicTabsEvent());
-    _bloc.state.listen((state) {
+    _bloc.add(FetchTopicTabsEvent());
+    _bloc.listen((state) {
       if (state is LoadedTopicTabsState) {
         /// 加载 tabs 成功
         if (state.items.isNotEmpty) {
-          _bloc.dispatch(FetchTopicListEvent(state.items.first.alias));
+          _bloc.add(FetchTopicListEvent(state.items.first.alias));
         }
       }
 
@@ -26,7 +26,7 @@ class _TopicListPageState extends State<TopicListPage>
         /// 刷新首页【我的圈子】
 
         final bloc = BlocProvider.of<ShortcutBloc>(context);
-        bloc?.dispatch(FetchShortcutEvent());
+        bloc?.add(FetchShortcutEvent());
       }
     });
   }
@@ -38,7 +38,7 @@ class _TopicListPageState extends State<TopicListPage>
 
   @override
   void dispose() {
-    _bloc?.dispose();
+    _bloc?.close();
     super.dispose();
   }
 
@@ -101,7 +101,7 @@ class __TabsWidgetState extends State<_TabsWidget> {
                     if (index != _curIndex) {
                       _curIndex = index;
                       _curIndexController.sink.add(_curIndex);
-                      widget.bloc.dispatch(FetchTopicListEvent(tab.alias));
+                      widget.bloc.add(FetchTopicListEvent(tab.alias));
                     }
                   },
                   child: StreamBuilder<int>(
@@ -160,12 +160,12 @@ class __TopicListWidgetState extends State<_TopicListWidget> {
 
   @override
   void initState() {
-    widget.bloc.event.listen((event) {
+    widget.bloc.listen((event) {
       if (event is FetchTopicListEvent) {
-        _curAlias = event.type;
+        _curAlias = (event as FetchTopicListEvent).type;
       }
     });
-    widget.bloc.state.listen((state) {
+    widget.bloc.listen((state) {
       if (state is LoadedTopicListState &&
           !state.loadMore &&
           _scrollController.positions.isNotEmpty) {
@@ -186,7 +186,7 @@ class __TopicListWidgetState extends State<_TopicListWidget> {
         ),
         firstRefresh: false,
         loadMore: () {
-          widget.bloc.dispatch(FetchTopicListEvent(_curAlias, loadMore: true));
+          widget.bloc.add(FetchTopicListEvent(_curAlias, loadMore: true));
         },
         child: BlocBuilder(
           bloc: widget.bloc,
@@ -322,7 +322,7 @@ class __ChangeSubscriptionStateWidgetState
         builder: (_, state) {
           return GestureDetector(
             onTap: () {
-              widget.bloc.dispatch(ChangeSubscriptionStateEvent(widget.topic));
+              widget.bloc.add(ChangeSubscriptionStateEvent(widget.topic));
             },
             behavior: HitTestBehavior.opaque,
             child: Container(

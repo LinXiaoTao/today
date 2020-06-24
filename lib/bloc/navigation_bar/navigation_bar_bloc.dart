@@ -59,10 +59,10 @@ class NavigationBarBloc extends Bloc<NavigationBarEvent, NavigationBarState> {
   }
 
   NavigationBarBloc(this.tabBloc) {
-    _tabSubscription = tabBloc.state.listen((state) {
+    _tabSubscription = tabBloc.listen((state) {
       if (state is SwitchTabState) {
-        if (currentState is LoadedNavigationBarState) {
-          dispatch(FetchNavigationBarEvent(fetchPost: false));
+        if (tabBloc.state is LoadedNavigationBarState) {
+          this.add(FetchNavigationBarEvent(fetchPost: false));
         }
       }
     });
@@ -128,8 +128,8 @@ class NavigationBarBloc extends Bloc<NavigationBarEvent, NavigationBarState> {
   }
 
   @override
-  void dispose() {
+  Future<void> close() {
     _tabSubscription.cancel();
-    super.dispose();
+    return super.close();
   }
 }

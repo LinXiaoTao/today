@@ -25,8 +25,7 @@ class MessageItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            BlocProvider.of<RecommendBloc>(context)
-                .dispatch(FetchRecommendEvent());
+            BlocProvider.of<RecommendBloc>(context).add(FetchRecommendEvent());
           },
           child: Padding(
             padding:

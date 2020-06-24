@@ -22,8 +22,8 @@ class _PersonalDetailPageState extends State<PersonalDetailPage> {
 
   @override
   void dispose() {
-    _personalDetailBloc?.dispose();
-    _personalActivityBloc?.dispose();
+    _personalDetailBloc?.close();
+    _personalActivityBloc?.close();
     super.dispose();
   }
 
@@ -229,7 +229,7 @@ class __PersonalInfoWidgetState extends State<_PersonalInfoWidget>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    widget.bloc.dispatch(FetchPersonalDataEvent(widget.username));
+    widget.bloc.add(FetchPersonalDataEvent(widget.username));
   }
 
   @override
@@ -647,7 +647,7 @@ class _TabContentWidgetState extends State<_TabContentWidget>
 
   @override
   void initState() {
-    widget.bloc.state.listen((state) {
+    widget.bloc.listen((state) {
       if (state is LoadedPersonalActivityState) {
         /// 加载成功
         _loadMore = false;
@@ -659,7 +659,7 @@ class _TabContentWidgetState extends State<_TabContentWidget>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    widget.bloc.dispatch(FetchPersonalUpdateEvent(widget.username));
+    widget.bloc.add(FetchPersonalUpdateEvent(widget.username));
   }
 
   @override
@@ -675,7 +675,7 @@ class _TabContentWidgetState extends State<_TabContentWidget>
                 !_loadMore) {
               /// 加载更多
               _loadMore = true;
-              widget.bloc.dispatch(
+              widget.bloc.add(
                   FetchPersonalUpdateEvent(widget.username, loadMore: true));
             }
           }

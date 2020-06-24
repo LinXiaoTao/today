@@ -32,7 +32,6 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget>
 
   bool playFlag = false;
 
-
   Future<void> play() async {
     if (_controller != null &&
         _controller.value != null &&
@@ -77,7 +76,7 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget>
 
   @override
   void dispose() {
-    _mediaBloc?.dispose();
+    _mediaBloc?.close();
     _loadMediaStreamController?.close();
     _controller?.dispose();
     super.dispose();
@@ -96,7 +95,7 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _mediaBloc.dispatch(FetchMediaEvent(widget.id));
+    _mediaBloc.add(FetchMediaEvent(widget.id));
   }
 
   @override

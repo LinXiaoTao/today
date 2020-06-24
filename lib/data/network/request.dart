@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:today/data/storage/simple_storage.dart';
 import 'package:today/data/network/interceptors.dart';
@@ -26,7 +28,6 @@ class ApiRequest {
     /// 游客登录，用户名和密码是随机生成的
 
     return _dio.post("/1.0/users/register", data: {
-      "saDeviceId": _saDeviceId,
       "username": Uuid().v4(),
       "password": _generaPassword()
     }).then((value) {
@@ -306,34 +307,36 @@ class ApiRequest {
     if (_saDeviceId.isEmpty) {
       _saDeviceId = _generaDeviceId();
     }
-    _dio = Dio(BaseOptions(baseUrl: "https://app.jike.ruguoapp.com", headers: {
-      "user-agent": "okhttp/3.13.1",
-      "ApplicationId": "com.ruguoapp.jike",
-      "notification-status": "ON",
-      "App-Version": "5.8.1",
-      "App-BuildNo": "828",
-      "OS-Version": 26,
-      "Content-Type": "application/json",
-      'Manufacturer': 'HUAWEI',
-      'Model': 'BLN-AL10',
-      'OS': 'android',
-      'Resolution': '1080x1800',
-      'Market': 'debug',
-      key_device_id: deviceId
+    _dio = Dio(BaseOptions(baseUrl: "https://api.ruguoapp.com", headers: {
+      "user-agent": "okhttp/4.7.2",
+      "x-jike-app-id": "XeITUMa6kGKF",
+      'applicationid': 'com.ruguoapp.jike',
+      "app-version": "7.1.0",
+      "app-buildno": "1065",
+      "os-versio": 26,
+      "content-type": "application/json",
+      'manufacturer': 'HUAWEI',
+      'model': 'BLN-AL10',
+      'os': 'Android',
+      'resolution': '1080x1800',
+      'market': 'debug',
+      "app-permissions": 4,
+      'source': '',
+
     }));
 
     // proxy
     if (!const bool.fromEnvironment('dart.vm.product')) {
       // 不是 release，可设置代理
-//      (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-//          (client) {
-//        client.findProxy = (url) {
-//          return "PROXY 192.168.2.103:8888";
-//        };
-//        //抓Https包设置
-//        client.badCertificateCallback =
-//            (X509Certificate cert, String host, int port) => true;
-//      };
+      (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (client) {
+        client.findProxy = (url) {
+          return "PROXY 192.168.2.103:8888";
+        };
+        //抓Https包设置
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
+      };
     }
 
     /// business

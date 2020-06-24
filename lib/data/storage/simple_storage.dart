@@ -12,7 +12,7 @@ class SimpleStorage {
       if (value == null) value = "";
       return value;
     }).catchError((error) {
-      debugPrint(error);
+      debugPrint(error.toString());
       return "";
     });
   }

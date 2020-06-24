@@ -13,7 +13,7 @@ class BusinessInterceptor implements Interceptor {
   static bool _refreshToken = false;
 
   @override
-  onError(DioError error) {
+  onError(DioError error) async {
     debugPrint(
         "net error: url = ${error.request.uri.toString()}, msg = ${error.message}");
     _handleError(error);
@@ -21,14 +21,16 @@ class BusinessInterceptor implements Interceptor {
   }
 
   @override
-  onRequest(RequestOptions options) {
+  onRequest(RequestOptions options) async {
     /// token
-    options.headers[key_access_token] = LoginState.accessToken;
+    if (LoginState.accessToken.isNotEmpty) {
+      options.headers[key_access_token] = LoginState.accessToken;
+    }
     return options;
   }
 
   @override
-  onResponse(Response response) {
+  onResponse(Response response) async {
     debugPrint("net response: $response");
     if (response.headers.value(key_access_token) != null) {
       String token = response.headers.value(key_access_token);

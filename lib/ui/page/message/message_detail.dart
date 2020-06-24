@@ -48,18 +48,18 @@ class _MessageDetailState extends State<MessageDetailPage>
 
   @override
   void dispose() {
-    _detailBloc?.dispose();
-    _relatedBloc?.dispose();
-    _commentListBloc?.dispose();
+    _detailBloc?.close();
+    _relatedBloc?.close();
+    _commentListBloc?.close();
     _scrollController?.close();
     super.dispose();
   }
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _detailBloc.dispatch(FetchMessageDetailEvent(widget.id,
+    _detailBloc.add(FetchMessageDetailEvent(widget.id,
         userRef: widget.userRef, topicRef: widget.topicRef, type: widget.type));
-    _relatedBloc.dispatch(FetchMessageRelatedListEvent(widget.id,
+    _relatedBloc.add(FetchMessageRelatedListEvent(widget.id,
         pageName: widget.pageName, type: widget.type));
   }
 
@@ -165,14 +165,12 @@ class _MessageDetailState extends State<MessageDetailPage>
                   ),
                   autoLoad: true,
                   onRefresh: () {
-                    _detailBloc.dispatch(FetchMessageDetailEvent(widget.id,
+                    _detailBloc.add(FetchMessageDetailEvent(widget.id,
                         userRef: widget.userRef,
                         topicRef: widget.topicRef,
                         type: widget.type));
-                    _relatedBloc.dispatch(FetchMessageRelatedListEvent(
-                        widget.id,
-                        pageName: widget.pageName,
-                        type: widget.type));
+                    _relatedBloc.add(FetchMessageRelatedListEvent(widget.id,
+                        pageName: widget.pageName, type: widget.type));
                     _commentListKey.currentState.refreshData();
                   },
                   loadMore: () {
@@ -710,7 +708,7 @@ class __CommentListWidgetState extends State<_CommentListWidget>
   }
 
   refreshData({bool loadMore = false}) {
-    widget.bloc.dispatch(FetchCommentListEvent(widget.message.id,
+    widget.bloc.add(FetchCommentListEvent(widget.message.id,
         targetType: widget.message.type, loadMore: loadMore));
   }
 
