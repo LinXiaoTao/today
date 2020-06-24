@@ -51,7 +51,6 @@ class AppNetWorkImage extends StatelessWidget {
 createImageProvider(String src) {
   return CachedNetworkImageProvider(src, headers: {
     key_access_token: LoginState.accessToken,
-    key_device_id: LoginState.deviceId
   });
 }
 

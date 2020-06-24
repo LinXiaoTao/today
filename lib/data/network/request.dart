@@ -322,7 +322,8 @@ class ApiRequest {
       'market': 'debug',
       "app-permissions": 4,
       'source': '',
-
+      'x-jike-device-properties':
+          json.encode({'uuid': _saDeviceId, 'android_id': deviceId})
     }));
 
     // proxy
