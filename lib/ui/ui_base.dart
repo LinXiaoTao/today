@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 export 'package:flutter/material.dart';
 export 'package:today/data/network/request.dart';
 export 'package:today/data/storage/simple_storage.dart';
@@ -83,6 +84,15 @@ class NormalTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(title);
   }
+}
+
+void showToast(String msg) {
+  Fluttertoast.showToast(
+    msg: msg,
+    backgroundColor: AppColors.accentColor,
+    textColor: AppColors.primaryTextColor,
+    gravity: ToastGravity.CENTER,
+  );
 }
 
 class PageLoadingWidget extends StatelessWidget {

@@ -40,6 +40,35 @@ class ApiRequest {
     });
   }
 
+  /// 获取验证码
+  static Future<void> getSmsCode(String mobilePhoneNumber,
+      {String action = 'PHONE_MIX_LOGIN'}) async {
+    return _dio.post('/1.0/users/getSmsCode', data: {
+      "areaCode": "+86",
+      "mobilePhoneNumber": mobilePhoneNumber,
+      "action": action
+    }).then((value) {
+      if (value.data['error'] != null) {
+        throw value.data['error'];
+      }
+    });
+  }
+
+  /// 手机号登录
+  static Future<UserProfile> mixLoginWithPhone(
+      String mobilePhoneNumber, String smsCode) {
+    return _dio.post('/1.0/users/mixLoginWithPhone', data: {
+      "areaCode": "+86",
+      "mobilePhoneNumber": mobilePhoneNumber,
+      "smsCode": smsCode
+    }).then((value) {
+      if (value.data['error'] != null) {
+        throw value.data['error'];
+      }
+      return UserProfile.fromJson(value.data);
+    });
+  }
+
   /// 获取用户数据
   static Future<UserProfile> profile({String username = ''}) async {
     Map<String, dynamic> query = {};
@@ -345,13 +374,12 @@ class ApiRequest {
     _init = true;
     debugPrint("init success");
 
-    if (!LoginState.isLogin) {
-      final userInfo = await register();
-      debugPrint("注册成功：${userInfo.username}");
-      SimpleStorage.putString(key_username, userInfo.username);
-      await LoginState.init();
+    if (LoginState.isLogin) {
+      loginSuccess();
     }
+  }
 
+  static void loginSuccess() async {
     /// 刷新 token
     bool value = await refreshToken();
     debugPrint("启动刷新 token: $value");
@@ -359,9 +387,6 @@ class ApiRequest {
       /// 刷新缓存
       await LoginState.init();
     }
-
-    /// 异步获取当前用户数据
-    profile();
 
     _scheduleRefreshTokenTask();
   }
