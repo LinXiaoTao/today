@@ -14,11 +14,13 @@ class LoadedRecommendState extends RecommendState {
   final List<Message> recommendList;
   final bool hasLoadMore;
   final String toastMsg;
+  final bool loadMore;
 
   LoadedRecommendState(
       {this.recommendList = const [],
       this.hasLoadMore = true,
-      this.toastMsg = ''})
+      this.toastMsg = '',
+      this.loadMore = false})
       : super();
 
   @override

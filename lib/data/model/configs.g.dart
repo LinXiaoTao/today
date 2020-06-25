@@ -11,7 +11,7 @@ SearchPlaceholder _$SearchPlaceholderFromJson(Map json) {
     json['discoverTab'] as String ?? '',
     json['recommendTab'] as String ?? '',
     json['subscribeTab'] as String ?? '',
-    json['homeTab'] as String ?? '',
+    json['homeTab'] as String ?? '搜搜你感兴趣的',
   );
 }
 

@@ -22,12 +22,12 @@ class RecommendBloc extends Bloc<RecommendEvent, RecommendState> {
       yield LoadedRecommendState(
           recommendList: await _fetchRecommendData(loadMore: event.loadMore),
           hasLoadMore: _recommendFeed.loadMoreKey != null,
-          toastMsg: _recommendFeed.toastMessage);
+          toastMsg: _recommendFeed.toastMessage,
+          loadMore: event.loadMore);
     }
   }
 
-  Future<List<Message>> _fetchRecommendData(
-      {bool loadMore = false}) async {
+  Future<List<Message>> _fetchRecommendData({bool loadMore = false}) async {
     List<Message> recommendItems = [];
 
     if (loadMore) {

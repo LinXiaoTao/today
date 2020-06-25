@@ -71,6 +71,7 @@ LoadMoreStageKey _$LoadMoreStageKeyFromJson(Map json) {
   return LoadMoreStageKey(
     json['stage'] as int,
     json['page'] as int,
+    json['score'] as int,
   );
 }
 
@@ -78,6 +79,7 @@ Map<String, dynamic> _$LoadMoreStageKeyToJson(LoadMoreStageKey instance) =>
     <String, dynamic>{
       'stage': instance.stage,
       'page': instance.page,
+      'score': instance.score,
     };
 
 RecommendHeadItem _$RecommendHeadItemFromJson(Map json) {

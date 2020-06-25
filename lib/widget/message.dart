@@ -116,7 +116,10 @@ class MessageItem extends StatelessWidget {
     /// type: RECOMMENDED_MESSAGE
     Topic topic = bodyItem.topic;
 
-    Comment topComment = bodyItem.topComment;
+    Comment topComment;
+    if (bodyItem.attachedComments.isNotEmpty) {
+      topComment = bodyItem.attachedComments[0];
+    }
 
     List<UserInfo> involvedUsers = [];
     if (topic.involvedUsers != null) {
@@ -799,13 +802,14 @@ class MessageBodyWidget extends StatelessWidget {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (context) {
-                              return PictureDetailPage(
-                                pictures,
-                                initIndex: index,
-                              );
-                            }));
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) {
+                                  return PictureDetailPage(
+                                    pictures,
+                                    initIndex: index,
+                                  );
+                                },
+                                fullscreenDialog: true));
                           },
                           child: AppNetWorkImage(
                             src: picture.thumbnailUrl,

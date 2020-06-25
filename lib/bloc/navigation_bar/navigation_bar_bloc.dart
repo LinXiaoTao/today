@@ -61,7 +61,7 @@ class NavigationBarBloc extends Bloc<NavigationBarEvent, NavigationBarState> {
   NavigationBarBloc(this.tabBloc) {
     _tabSubscription = tabBloc.listen((state) {
       if (state is SwitchTabState) {
-        if (tabBloc.state is LoadedNavigationBarState) {
+        if (this.state is LoadedNavigationBarState) {
           this.add(FetchNavigationBarEvent(fetchPost: false));
         }
       }

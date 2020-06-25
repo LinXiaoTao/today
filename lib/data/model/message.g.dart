@@ -36,12 +36,10 @@ Message _$MessageFromJson(Map json) {
     json['messageId'] as String,
     json['video'] == null ? null : Video.fromJson(json['video'] as Map),
     json['subtitle'] as String,
-    json['topComment'] == null
-        ? null
-        : Comment.fromJson(json['topComment'] as Map),
     (json['attachedComments'] as List)
-        ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
-        ?.toList(),
+            ?.map((e) => e == null ? null : Comment.fromJson(e as Map))
+            ?.toList() ??
+        [],
     json['target'] == null ? null : Message.fromJson(json['target'] as Map),
     json['viewType'] as String ?? '',
     json['questionId'] as String ?? 'questionId',
@@ -86,7 +84,6 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
       'messageId': instance.messageId,
       'video': instance.video,
       'subtitle': instance.subtitle,
-      'topComment': instance.topComment,
       'attachedComments': instance.attachedComments,
       'target': instance.target,
       'viewType': instance.viewType,

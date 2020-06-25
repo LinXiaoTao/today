@@ -332,7 +332,7 @@ class ApiRequest {
       (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
           (client) {
         client.findProxy = (url) {
-          return "PROXY 172.17.0.195:8888";
+          return "PROXY 192.168.2.103:8888";
         };
         //抓Https包设置
         client.badCertificateCallback =

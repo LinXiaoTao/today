@@ -70,8 +70,7 @@ class Message extends Equatable {
 
   final String subtitle;
 
-  final Comment topComment;
-
+  @JsonKey(defaultValue: [])
   final List<Comment> attachedComments;
 
   /// type = 'REPOST'
@@ -129,7 +128,6 @@ class Message extends Equatable {
     this.messageId,
     this.video,
     this.subtitle,
-    this.topComment,
     this.attachedComments,
     this.target,
     this.viewType,

@@ -82,8 +82,8 @@ class ImageUtil {
       outW = outH;
     }
 
-    debugPrint(
-        'srcW = $srcW; srcH = $srcH; scale = ${srcW / srcH} ; outW = $outW; outH = $outH ; outScale = ${outW / outH}');
+//    debugPrint(
+//        'srcW = $srcW; srcH = $srcH; scale = ${srcW / srcH} ; outW = $outW; outH = $outH ; outScale = ${outW / outH}');
 
     return {'w': outW, 'h': outH};
   }

@@ -14,18 +14,9 @@ class HomePage extends StatefulWidget {
 
 class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
   final SearchPlaceholderBloc _searchPlaceholderBloc = SearchPlaceholderBloc();
-  final ShortcutBloc _shortcutBloc = ShortcutBloc();
   RecommendBloc _recommendBloc;
 
-  StreamSubscription _homeSubscription;
-
   ScrollController _scrollController = ScrollController();
-
-//  final GlobalKey<EasyRefreshState> _refreshKey = GlobalKey();
-//
-//  final GlobalKey<PhoenixHeaderState> _refreshHeaderKey = GlobalKey();
-
-//  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
 
   @override
   void initState() {
@@ -35,23 +26,21 @@ class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
   @override
   void afterFirstLayout(BuildContext context) {
     _recommendBloc.add(FetchRecommendEvent());
-    _shortcutBloc.add(FetchShortcutEvent());
     _searchPlaceholderBloc.add(FetchSearchPlaceHolderEvent());
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _homeSubscription?.cancel();
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     _recommendBloc = BlocProvider.of(context);
-    _recommendBloc.listen((event) {
-      if (event is FetchRecommendEvent) {
-        if (!(event as FetchRecommendEvent).loadMore) {
+    _recommendBloc.listen((state) {
+      if (state is LoadedRecommendState) {
+        if (!state.loadMore) {
           _scrollController.animateTo(0,
               curve: Curves.fastLinearToSlowEaseIn,
               duration: Duration(milliseconds: 300));
@@ -67,91 +56,86 @@ class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
       create: (_) {
         return _searchPlaceholderBloc;
       },
-      child: BlocProvider<ShortcutBloc>(
-        create: (_) {
-          return _shortcutBloc;
-        },
-        child: Column(
-          children: <Widget>[
-            Container(
-              color: Color(0xffffe411),
-              height: MediaQuery.of(context).padding.top,
-            ),
-            Expanded(
-              child: NotificationListener<ScrollUpdateNotification>(
-                onNotification: (notification) {
-                  BlocProvider.of<NavigationBarBloc>(context).add(
-                      SwitchHomeNavigationBarEvent(
-                          refreshMode:
-                              _scrollController.position.pixels > 2000));
-                  return false;
+      child: Column(
+        children: <Widget>[
+          Container(
+            color: Color(0xffffe411),
+            height: MediaQuery.of(context).padding.top,
+          ),
+          Expanded(
+            child: NotificationListener<ScrollUpdateNotification>(
+              onNotification: (notification) {
+                BlocProvider.of<NavigationBarBloc>(context).add(
+                    SwitchHomeNavigationBarEvent(
+                        refreshMode: _scrollController.position.pixels > 2000));
+                return false;
+              },
+              child: EasyRefresh(
+                firstRefresh: false,
+                header: PhoenixHeader(),
+                footer: BallPulseFooter(
+                  backgroundColor: Colors.transparent,
+                  color: AppColors.accentColor,
+                ),
+                onRefresh: () async {
+                  return _recommendBloc.add(FetchRecommendEvent());
                 },
-                child: EasyRefresh(
-                  firstRefresh: false,
-                  header: PhoenixHeader(),
-                  footer: BallPulseFooter(
-                    backgroundColor: Colors.transparent,
-                    color: AppColors.accentColor,
-                  ),
-                  onRefresh: () async {
-                    return _recommendBloc.add(FetchRecommendEvent());
-                  },
-                  onLoad: () async {
-                    return _recommendBloc
-                        .add(FetchRecommendEvent(loadMore: true));
-                  },
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    slivers: <Widget>[
-                      SliverPersistentHeader(
-                        floating: true,
-                        delegate: _SliverSearchDelegate(
-                            maxHeight: 55,
-                            child: _SearchWidget(55, _searchPlaceholderBloc)),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _ShortcutsWidget(_shortcutBloc),
-                      ),
-                      BlocListener(
-                        bloc: _recommendBloc,
-                        listener: (_, state) {
-                          if (state is LoadedRecommendState) {
-                            if (state.toastMsg.isEmpty) return;
-                            Fluttertoast.showToast(
-                                msg: state.toastMsg,
-                                toastLength: Toast.LENGTH_LONG,
-                                backgroundColor: AppColors.accentColor,
-                                textColor: AppColors.primaryTextColor,
-                                gravity: ToastGravity.TOP,
-                                fontSize: 14);
-                          }
-                        },
-                        child: BlocBuilder(
-                            bloc: _recommendBloc,
-                            builder: (_, RecommendState state) {
-                              if (state is LoadedRecommendState) {
-                                return SliverList(
-                                  delegate: SliverChildBuilderDelegate(
-                                      (context, index) {
-                                    return MessageItem(
-                                      state.recommendList[index],
-                                    );
-                                  }, childCount: state.recommendList.length),
-                                );
-                              }
-
-                              return SliverToBoxAdapter(
-                                child: PageLoadingWidget(),
+                onLoad: () async {
+                  return _recommendBloc
+                      .add(FetchRecommendEvent(loadMore: true));
+                },
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: <Widget>[
+                    SliverPersistentHeader(
+                      floating: true,
+                      delegate: _SliverSearchDelegate(
+                          maxHeight: 55,
+                          child: _SearchWidget(55, _searchPlaceholderBloc)),
+                    ),
+                    BlocListener(
+                      bloc: _recommendBloc,
+                      listener: (_, state) {
+                        if (state is LoadedRecommendState) {
+                          if (state.toastMsg.isEmpty) return;
+                          Fluttertoast.showToast(
+                              msg: state.toastMsg,
+                              toastLength: Toast.LENGTH_LONG,
+                              backgroundColor: AppColors.accentColor,
+                              textColor: AppColors.primaryTextColor,
+                              gravity: ToastGravity.TOP,
+                              fontSize: 14);
+                        }
+                      },
+                      child: BlocBuilder(
+                          bloc: _recommendBloc,
+                          builder: (_, RecommendState state) {
+                            if (state is LoadedRecommendState) {
+                              return SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                    (context, index) {
+                                  return MessageItem(
+                                    state.recommendList[index],
+                                    needMarginTop: (_recommendBloc
+                                            .recommendList[max(0, index - 1)]
+                                            .type ==
+                                        'ORIGINAL_POST'),
+                                  );
+                                }, childCount: state.recommendList.length),
                               );
-                            }),
-                      ),
-                    ],
-                  ),
+                            }
+
+                            return SliverToBoxAdapter(
+                              child: PageLoadingWidget(),
+                            );
+                          }),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -197,7 +181,7 @@ class _SearchWidget extends StatelessWidget {
                         return Text(
                           (state is LoadedSearchPlaceHolderState)
                               ? state.searchPlaceholder.homeTab
-                              : '',
+                              : '搜搜你感兴趣的',
                           style: TextStyle(
                               color: AppColors.tipsTextColor, fontSize: 16),
                         );

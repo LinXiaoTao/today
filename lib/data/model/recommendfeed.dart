@@ -64,8 +64,9 @@ class LoadMoreKey {
 class LoadMoreStageKey {
   final int stage;
   final int page;
+  final int score;
 
-  LoadMoreStageKey(this.stage, this.page);
+  LoadMoreStageKey(this.stage, this.page, this.score);
 
   factory LoadMoreStageKey.fromJson(Map json) =>
       _$LoadMoreStageKeyFromJson(json);

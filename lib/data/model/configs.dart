@@ -10,7 +10,7 @@ class SearchPlaceholder {
   final String recommendTab;
   @JsonKey(defaultValue: '')
   final String subscribeTab;
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '搜搜你感兴趣的')
   final String homeTab;
 
   SearchPlaceholder(

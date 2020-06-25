@@ -36,17 +36,17 @@ class _MainState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<NavigationBarBloc>(
+    return BlocProvider<TabBloc>(
       create: (_) {
-        return _navigationBarBloc;
+        return _tabBloc;
       },
-      child: BlocProvider<TabBloc>(
+      child: BlocProvider<RecommendBloc>(
         create: (_) {
-          return _tabBloc;
+          return _recommendBloc;
         },
-        child: BlocProvider<RecommendBloc>(
+        child: BlocProvider<NavigationBarBloc>(
           create: (_) {
-            return _recommendBloc;
+            return _navigationBarBloc;
           },
           child: Scaffold(
             bottomNavigationBar: BlocBuilder(
@@ -56,9 +56,10 @@ class _MainState extends State<MainPage> {
                     return BottomNavigationBar(
                       items: state.items,
                       onTap: (index) {
-                        if (_navigationBarBloc.refreshMode) {
+                        if (state.curIndex == 0 &&
+                            index == 0 &&
+                            _navigationBarBloc.refreshMode) {
                           _recommendBloc.add(FetchRecommendEvent());
-                          return;
                         }
                         _tabBloc.add(SwitchTabEvent(switchIndex: index));
                       },
