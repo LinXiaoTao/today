@@ -3,9 +3,7 @@ import 'package:meta/meta.dart';
 import 'package:today/data/model/models.dart';
 
 @immutable
-abstract class MessageRelatedEvent extends Equatable {
-  MessageRelatedEvent([List props = const []]) : super(props);
-}
+abstract class MessageRelatedEvent extends Equatable {}
 
 class FetchMessageRelatedListEvent extends MessageRelatedEvent {
   final String id;
@@ -14,10 +12,13 @@ class FetchMessageRelatedListEvent extends MessageRelatedEvent {
 
   FetchMessageRelatedListEvent(this.id,
       {this.pageName = '', this.type = MessageType.ORIGINAL_POST})
-      : super([id, pageName]);
+      : super();
 
   @override
   String toString() {
     return 'FetchMessageRelatedListEvent{id: $id, pageName: $pageName, type: $type}';
   }
+
+  @override
+  List<Object> get props => [id, pageName];
 }

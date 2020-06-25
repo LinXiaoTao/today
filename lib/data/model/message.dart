@@ -145,7 +145,10 @@ class Message extends Equatable {
     this.picture,
     this.flags,
     this.button,
-  ) : super([id]);
+  );
+
+  @override
+  List<Object> get props => [id];
 
   factory Message.fromJson(Map json) => _$MessageFromJson(json);
 

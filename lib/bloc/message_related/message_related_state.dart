@@ -3,20 +3,23 @@ import 'package:meta/meta.dart';
 import 'package:today/data/model/models.dart';
 
 @immutable
-abstract class MessageRelatedState extends Equatable {
-  MessageRelatedState([List props = const []]) : super(props);
-}
+abstract class MessageRelatedState extends Equatable {}
 
-class InitialMessageRelatedState extends MessageRelatedState {}
+class InitialMessageRelatedState extends MessageRelatedState {
+  @override
+  List<Object> get props => [];
+}
 
 class LoadedMessageRelatedListState extends MessageRelatedState {
   final List<Message> messageList;
 
-  LoadedMessageRelatedListState({this.messageList = const []})
-      : super([messageList]);
+  LoadedMessageRelatedListState({this.messageList = const []}) : super();
 
   @override
   String toString() {
     return 'LoadedMessageRelatedListState{messageList: $messageList}';
   }
+
+  @override
+  List<Object> get props => [messageList];
 }

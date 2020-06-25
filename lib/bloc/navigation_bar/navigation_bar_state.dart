@@ -4,10 +4,13 @@ import 'package:meta/meta.dart';
 
 @immutable
 abstract class NavigationBarState extends Equatable {
-  NavigationBarState([List props = const []]) : super(props);
+  NavigationBarState();
 }
 
-class InitialMainState extends NavigationBarState {}
+class InitialMainState extends NavigationBarState {
+  @override
+  List<Object> get props => [];
+}
 
 /// 加载
 class LoadedNavigationBarState extends NavigationBarState {
@@ -15,10 +18,13 @@ class LoadedNavigationBarState extends NavigationBarState {
   final int curIndex;
 
   LoadedNavigationBarState(this.items, {this.curIndex = 0})
-      : super([items, curIndex]);
+      : super();
 
   @override
   String toString() {
     return 'LoadedNavigationBarState{items: $items, curIndex: $curIndex}';
   }
+
+  @override
+  List<Object> get props => [items, curIndex];
 }

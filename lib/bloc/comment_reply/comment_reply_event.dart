@@ -2,9 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-abstract class CommentReplyEvent extends Equatable {
-  CommentReplyEvent([List props = const []]) : super(props);
-}
+abstract class CommentReplyEvent extends Equatable {}
 
 class FetchCommentReplyEvent extends CommentReplyEvent {
   final String primaryCommentId;
@@ -16,10 +14,13 @@ class FetchCommentReplyEvent extends CommentReplyEvent {
 
   FetchCommentReplyEvent(this.primaryCommentId,
       {this.targetType = '', this.order = 'LIKES', this.loadMore = false})
-      : super([primaryCommentId, targetType, order, loadMore]);
+      : super();
 
   @override
   String toString() {
     return 'FetchCommentReplyEvent{primaryCommentId: $primaryCommentId, targetType: $targetType, order: $order, loadMore: $loadMore}';
   }
+
+  @override
+  List<Object> get props => [primaryCommentId, targetType, order, loadMore];
 }

@@ -2,9 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-abstract class RecommendEvent extends Equatable {
-  RecommendEvent([List props = const []]) : super(props);
-}
+abstract class RecommendEvent extends Equatable {}
 
 class FetchRecommendEvent extends RecommendEvent {
   final bool loadMore;
@@ -15,4 +13,7 @@ class FetchRecommendEvent extends RecommendEvent {
   String toString() {
     return 'FetchRecommendEvent{}';
   }
+
+  @override
+  List<Object> get props => [];
 }

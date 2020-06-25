@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 
 @immutable
 abstract class MediaEvent extends Equatable {
-  MediaEvent([List props = const []]) : super(props);
 }
 
 class FetchMediaEvent extends MediaEvent {
@@ -12,10 +11,13 @@ class FetchMediaEvent extends MediaEvent {
   final String trigger;
 
   FetchMediaEvent(this.id, {this.type = 'ORIGINAL_POST', this.trigger = 'user'})
-      : super([id, type, trigger]);
+      : super();
 
   @override
   String toString() {
     return 'FetchMediaEvent{id: $id, type: $type, trigger: $trigger}';
   }
+
+  @override
+  List<Object> get props => [id, type, trigger];
 }

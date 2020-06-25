@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 
 @immutable
 abstract class SearchPlaceholderEvent extends Equatable {
-  SearchPlaceholderEvent([List props = const []]) : super(props);
 }
 
 class FetchSearchPlaceHolderEvent extends SearchPlaceholderEvent {
@@ -11,4 +10,7 @@ class FetchSearchPlaceHolderEvent extends SearchPlaceholderEvent {
   String toString() {
     return 'FetchSearchPlaceHolderEvent{}';
   }
+
+  @override
+  List<Object> get props => [];
 }
