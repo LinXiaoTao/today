@@ -17,8 +17,8 @@ class _CommentDetailPageState extends State<CommentDetailPage>
   final CommentDetailBloc _detailBloc = CommentDetailBloc();
   final CommentReplyBloc _commentReplyBloc = CommentReplyBloc();
 
-  final GlobalKey<PhoenixHeaderState> _refreshKey = GlobalKey();
-  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
+//  final GlobalKey<PhoenixHeaderState> _refreshKey = GlobalKey();
+//  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
 
   @override
   void dispose() {
@@ -36,21 +36,20 @@ class _CommentDetailPageState extends State<CommentDetailPage>
           builder: (_, CommentDetailState state) {
             if (state is LoadedCommentDetailState) {
               return EasyRefresh(
-                  refreshHeader: PhoenixHeader(key: _refreshKey),
-                  refreshFooter: BallPulseFooter(
-                    key: _loadMoreFooterKey,
+                  header: PhoenixHeader(),
+                  footer: BallPulseFooter(
                     backgroundColor: Colors.transparent,
                     color: AppColors.accentColor,
                   ),
                   firstRefresh: false,
-                  loadMore: () {
-                    _commentReplyBloc.add(FetchCommentReplyEvent(
+                  onLoad: () async {
+                    return _commentReplyBloc.add(FetchCommentReplyEvent(
                         widget.comment.id,
                         targetType: widget.comment.targetType,
                         loadMore: true));
                   },
-                  onRefresh: () {
-                    afterFirstLayout(context);
+                  onRefresh: () async {
+                    return afterFirstLayout(context);
                   },
                   child: CustomScrollView(
                     slivers: <Widget>[

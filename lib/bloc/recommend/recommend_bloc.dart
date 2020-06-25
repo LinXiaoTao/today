@@ -5,9 +5,9 @@ import 'package:today/data/network/request.dart';
 
 class RecommendBloc extends Bloc<RecommendEvent, RecommendState> {
   RecommendFeed _recommendFeed;
-  final List<RecommendItem> _recommendList = [];
+  final List<Message> _recommendList = [];
 
-  List<RecommendItem> get recommendList {
+  List<Message> get recommendList {
     return _recommendList;
   }
 
@@ -26,9 +26,9 @@ class RecommendBloc extends Bloc<RecommendEvent, RecommendState> {
     }
   }
 
-  Future<List<RecommendItem>> _fetchRecommendData(
+  Future<List<Message>> _fetchRecommendData(
       {bool loadMore = false}) async {
-    List<RecommendItem> recommendItems = [];
+    List<Message> recommendItems = [];
 
     if (loadMore) {
       recommendItems.addAll(_recommendList);

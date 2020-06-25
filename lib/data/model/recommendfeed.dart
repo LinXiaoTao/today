@@ -7,7 +7,7 @@ part 'recommendfeed.g.dart';
 @JsonSerializable()
 class RecommendFeed {
   @JsonKey(defaultValue: [])
-  final List<RecommendItem> data;
+  final List<Message> data;
   @JsonKey(defaultValue: '')
   final String toastMessage;
   final LoadMoreKey loadMoreKey;
@@ -17,55 +17,6 @@ class RecommendFeed {
   factory RecommendFeed.fromJson(Map json) => _$RecommendFeedFromJson(json);
 
   Map<String, dynamic> toJson() => _$RecommendFeedToJson(this);
-}
-
-@JsonSerializable()
-class RecommendItem extends Equatable {
-  final List<RecommendHeadItem> items;
-
-  /// RECOMMENDED_MESSAGE || HEADLINE_RECOMMENDATION
-  @JsonKey(defaultValue: '')
-  final String type;
-  final String id;
-  final Message item;
-  final DislikeMenu dislikeMenu;
-
-  ///BACK_TO_TOP
-  @JsonKey(defaultValue: '')
-  final String action;
-  @JsonKey(defaultValue: '')
-  final String text;
-
-  /// TIP_CARD
-  @JsonKey(defaultValue: '')
-  final String viewType;
-  @JsonKey(defaultValue: '')
-  final String title;
-  @JsonKey(defaultValue: '')
-  final String content;
-  final Picture picture;
-  final Flags flags;
-  final Button button;
-
-  RecommendItem(
-      this.items,
-      this.type,
-      this.id,
-      this.item,
-      this.dislikeMenu,
-      this.action,
-      this.text,
-      this.viewType,
-      this.title,
-      this.content,
-      this.picture,
-      this.flags,
-      this.button)
-      : super([id]);
-
-  factory RecommendItem.fromJson(Map json) => _$RecommendItemFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RecommendItemToJson(this);
 }
 
 @JsonSerializable()
@@ -98,15 +49,28 @@ class Button {
 
 @JsonSerializable()
 class LoadMoreKey {
-  final int score;
-  final bool isLastPage;
   final int page;
+  final int feedTime;
+  final LoadMoreStageKey stageKey;
 
-  LoadMoreKey(this.score, this.isLastPage, this.page);
+  LoadMoreKey(this.page, this.feedTime, this.stageKey);
 
   factory LoadMoreKey.fromJson(Map json) => _$LoadMoreKeyFromJson(json);
 
   Map<String, dynamic> toJson() => _$LoadMoreKeyToJson(this);
+}
+
+@JsonSerializable()
+class LoadMoreStageKey {
+  final int stage;
+  final int page;
+
+  LoadMoreStageKey(this.stage, this.page);
+
+  factory LoadMoreStageKey.fromJson(Map json) =>
+      _$LoadMoreStageKeyFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LoadMoreStageKeyToJson(this);
 }
 
 @JsonSerializable()

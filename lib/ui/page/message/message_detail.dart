@@ -33,8 +33,8 @@ class _MessageDetailState extends State<MessageDetailPage>
   final MessageRelatedBloc _relatedBloc = MessageRelatedBloc();
   final CommentListBloc _commentListBloc = CommentListBloc();
 
-  final GlobalKey<PhoenixHeaderState> _refreshHeaderKey = GlobalKey();
-  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
+//  final GlobalKey<PhoenixHeaderState> _refreshHeaderKey = GlobalKey();
+//  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
   final GlobalKey<__CommentListWidgetState> _commentListKey = GlobalKey();
 
   final StreamController<double> _scrollController = StreamController();
@@ -155,17 +155,13 @@ class _MessageDetailState extends State<MessageDetailPage>
                 }
               },
               child: EasyRefresh(
-                  refreshHeader: PhoenixHeader(
-                    key: _refreshHeaderKey,
-                  ),
-                  refreshFooter: BallPulseFooter(
-                    key: _loadMoreFooterKey,
+                  header: PhoenixHeader(),
+                  footer: BallPulseFooter(
                     backgroundColor: Colors.transparent,
                     color: AppColors.accentColor,
                   ),
-                  autoLoad: true,
-                  onRefresh: () {
-                    _detailBloc.add(FetchMessageDetailEvent(widget.id,
+                  onRefresh: () async {
+                    return _detailBloc.add(FetchMessageDetailEvent(widget.id,
                         userRef: widget.userRef,
                         topicRef: widget.topicRef,
                         type: widget.type));
@@ -173,8 +169,9 @@ class _MessageDetailState extends State<MessageDetailPage>
                         pageName: widget.pageName, type: widget.type));
                     _commentListKey.currentState.refreshData();
                   },
-                  loadMore: () {
-                    _commentListKey.currentState.refreshData(loadMore: true);
+                  onLoad: () async {
+                    return _commentListKey.currentState
+                        .refreshData(loadMore: true);
                   },
                   firstRefresh: false,
                   child: CustomScrollView(

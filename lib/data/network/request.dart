@@ -248,7 +248,7 @@ class ApiRequest {
     if (loadMoreKey != null) {
       data['loadMoreKey'] = loadMoreKey;
     }
-    return _dio.post('/1.0/personalUpdates/single', data: data).then((value) {
+    return _dio.post('/1.0/personalUpdate/single', data: data).then((value) {
       return PersonalUpdate.fromJson(value.data);
     });
   }
@@ -332,7 +332,7 @@ class ApiRequest {
       (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
           (client) {
         client.findProxy = (url) {
-          return "PROXY 192.168.2.103:8888";
+          return "PROXY 172.17.0.195:8888";
         };
         //抓Https包设置
         client.badCertificateCallback =

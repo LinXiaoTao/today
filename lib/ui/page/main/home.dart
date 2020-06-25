@@ -21,11 +21,11 @@ class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
 
   ScrollController _scrollController = ScrollController();
 
-  final GlobalKey<EasyRefreshState> _refreshKey = GlobalKey();
+//  final GlobalKey<EasyRefreshState> _refreshKey = GlobalKey();
+//
+//  final GlobalKey<PhoenixHeaderState> _refreshHeaderKey = GlobalKey();
 
-  final GlobalKey<PhoenixHeaderState> _refreshHeaderKey = GlobalKey();
-
-  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
+//  final GlobalKey<BallPulseFooterState> _loadMoreFooterKey = GlobalKey();
 
   @override
   void initState() {
@@ -84,25 +84,22 @@ class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
                       SwitchHomeNavigationBarEvent(
                           refreshMode:
                               _scrollController.position.pixels > 2000));
+                  return false;
                 },
                 child: EasyRefresh(
-                  key: _refreshKey,
                   firstRefresh: false,
-                  refreshHeader: PhoenixHeader(
-                    key: _refreshHeaderKey,
-                  ),
-                  refreshFooter: BallPulseFooter(
-                    key: _loadMoreFooterKey,
+                  header: PhoenixHeader(),
+                  footer: BallPulseFooter(
                     backgroundColor: Colors.transparent,
                     color: AppColors.accentColor,
                   ),
-                  onRefresh: () {
-                    _recommendBloc.add(FetchRecommendEvent());
+                  onRefresh: () async {
+                    return _recommendBloc.add(FetchRecommendEvent());
                   },
-                  loadMore: () {
-                    _recommendBloc.add(FetchRecommendEvent(loadMore: true));
+                  onLoad: () async {
+                    return _recommendBloc
+                        .add(FetchRecommendEvent(loadMore: true));
                   },
-                  autoLoad: true,
                   child: CustomScrollView(
                     controller: _scrollController,
                     slivers: <Widget>[
@@ -138,10 +135,6 @@ class _HomeBodyState extends State<HomePage> with AfterLayoutMixin<HomePage> {
                                       (context, index) {
                                     return MessageItem(
                                       state.recommendList[index],
-                                      needMarginTop: (_recommendBloc
-                                              .recommendList[max(0, index - 1)]
-                                              .type ==
-                                          'RECOMMENDED_MESSAGE'),
                                     );
                                   }, childCount: state.recommendList.length),
                                 );

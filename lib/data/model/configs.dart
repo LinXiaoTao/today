@@ -4,9 +4,13 @@ part 'configs.g.dart';
 
 @JsonSerializable()
 class SearchPlaceholder {
+  @JsonKey(defaultValue: '')
   final String discoverTab;
+  @JsonKey(defaultValue: '')
   final String recommendTab;
+  @JsonKey(defaultValue: '')
   final String subscribeTab;
+  @JsonKey(defaultValue: '')
   final String homeTab;
 
   SearchPlaceholder(

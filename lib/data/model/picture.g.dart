@@ -8,13 +8,14 @@ part of 'picture.dart';
 
 Picture _$PictureFromJson(Map json) {
   return Picture(
-      json['thumbnailUrl'] as String,
-      json['middlePicUrl'] as String,
-      json['picUrl'] as String,
-      json['format'] as String ?? '',
-      json['averageHue'] as String,
-      width: json['width'] as int ?? 0,
-      height: json['height'] as int ?? 0);
+    json['thumbnailUrl'] as String,
+    json['middlePicUrl'] as String,
+    json['picUrl'] as String,
+    json['format'] as String ?? '',
+    json['averageHue'] as String,
+    width: json['width'] as int ?? 0,
+    height: json['height'] as int ?? 0,
+  );
 }
 
 Map<String, dynamic> _$PictureToJson(Picture instance) => <String, dynamic>{
@@ -24,5 +25,5 @@ Map<String, dynamic> _$PictureToJson(Picture instance) => <String, dynamic>{
       'format': instance.format,
       'averageHue': instance.averageHue,
       'width': instance.width,
-      'height': instance.height
+      'height': instance.height,
     };

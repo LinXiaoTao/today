@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart' as intl;
 import 'package:today/ui/page/message/comment_detail.dart';
 import 'package:today/ui/ui_base.dart';
-import 'package:today/data/model/recommendfeed.dart';
 import 'package:today/ui/page/picture_detail.dart';
 import 'package:today/ui/page/message/message_detail.dart';
 import 'package:today/ui/page/message/video_list.dart';
@@ -11,14 +10,14 @@ import 'package:today/widget/widgets.dart';
 final intl.DateFormat _dateFormat = intl.DateFormat('MM/dd HH:mm');
 
 class MessageItem extends StatelessWidget {
-  final RecommendItem item;
+  final Message item;
   final bool needMarginTop;
 
   MessageItem(this.item, {this.needMarginTop = true});
 
   @override
   Widget build(BuildContext context) {
-    Message bodyItem = item.item;
+    Message bodyItem = item;
 
     if (item.type == 'SPLIT_BAR') {
       return Material(
@@ -119,7 +118,10 @@ class MessageItem extends StatelessWidget {
 
     Comment topComment = bodyItem.topComment;
 
-    List<UserInfo> involvedUsers = topic.involvedUsers.users.reversed.toList();
+    List<UserInfo> involvedUsers = [];
+    if (topic.involvedUsers != null) {
+      involvedUsers = topic.involvedUsers.users.reversed.toList();
+    }
 
     List<Widget> involvedUsersWidget = [];
 
@@ -643,18 +645,14 @@ class CommentWidget extends StatelessWidget {
             ],
           );
         }),
-        SizedBox(
-          width: 80,
-        ),
+        Spacer(),
         Image.asset('images/ic_messages_comment.png'),
         SizedBox(
           width: 4,
         ),
         Text(bodyItem.commentCount.toString(),
             style: TextStyle(fontSize: 12, color: AppColors.tipsTextColor)),
-        SizedBox(
-          width: 80,
-        ),
+        Spacer(),
         Image.asset('images/ic_messages_share.png'),
         SizedBox(
           width: 4,

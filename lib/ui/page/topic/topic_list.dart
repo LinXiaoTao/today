@@ -179,14 +179,15 @@ class __TopicListWidgetState extends State<_TopicListWidget> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (_, layout) {
       return EasyRefresh(
-        refreshFooter: BallPulseFooter(
+        footer: BallPulseFooter(
           key: GlobalKey(),
           backgroundColor: Colors.transparent,
           color: AppColors.accentColor,
         ),
         firstRefresh: false,
-        loadMore: () {
-          widget.bloc.add(FetchTopicListEvent(_curAlias, loadMore: true));
+        onLoad: () async {
+          return widget.bloc
+              .add(FetchTopicListEvent(_curAlias, loadMore: true));
         },
         child: BlocBuilder(
           bloc: widget.bloc,

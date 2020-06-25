@@ -49,11 +49,11 @@ class _PictureDetailPageState extends State<PictureDetailPage> {
               builder: (context, index) {
                 Picture picture = widget.pictures[index];
                 return PhotoViewGalleryPageOptions(
-                  imageProvider: CachedNetworkImageProvider(picture.picUrl,
-                      headers: {
-                        key_access_token: LoginState.accessToken,
-                      }),
-                  heroTag: picture,
+                  imageProvider:
+                      CachedNetworkImageProvider(picture.picUrl, headers: {
+                    key_access_token: LoginState.accessToken,
+                  }),
+                  heroAttributes: PhotoViewHeroAttributes(tag: picture),
                   minScale: PhotoViewComputedScale.contained,
                   initialScale: PhotoViewComputedScale.contained,
                   maxScale: 2.0,

@@ -21,6 +21,8 @@ enum MessageStatus {
 class Message extends Equatable {
   final String id;
 
+  /// RECOMMENDED_MESSAGE || HEADLINE_RECOMMENDATION
+  @JsonKey(defaultValue: '')
   final String type;
 
   @JsonKey(defaultValue: '')
@@ -76,6 +78,7 @@ class Message extends Equatable {
   final Message target;
 
   /// MESSAGE_VIEW
+  @JsonKey(defaultValue: '')
   final String viewType;
 
   @JsonKey(defaultValue: 'questionId')
@@ -90,6 +93,20 @@ class Message extends Equatable {
 
   @JsonKey(defaultValue: 0)
   final int upVoteCount;
+
+  final List<RecommendHeadItem> items;
+
+  final DislikeMenu dislikeMenu;
+
+  ///BACK_TO_TOP
+  @JsonKey(defaultValue: '')
+  final String action;
+  @JsonKey(defaultValue: '')
+  final String text;
+
+  final Picture picture;
+  final Flags flags;
+  final Button button;
 
   Message(
     this.id,
@@ -121,6 +138,13 @@ class Message extends Equatable {
     this.answerCount,
     this.richtextContent,
     this.upVoteCount,
+    this.items,
+    this.dislikeMenu,
+    this.action,
+    this.text,
+    this.picture,
+    this.flags,
+    this.button,
   ) : super([id]);
 
   factory Message.fromJson(Map json) => _$MessageFromJson(json);

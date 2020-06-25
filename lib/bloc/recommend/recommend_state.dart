@@ -10,7 +10,7 @@ abstract class RecommendState extends Equatable {
 class InitialRecommendState extends RecommendState {}
 
 class LoadedRecommendState extends RecommendState {
-  final List<RecommendItem> recommendList;
+  final List<Message> recommendList;
   final bool hasLoadMore;
   final String toastMsg;
 

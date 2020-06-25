@@ -8,11 +8,12 @@ part of 'video.dart';
 
 Video _$VideoFromJson(Map json) {
   return Video(
-      json['type'] as String ?? '',
-      json['image'] == null ? null : Picture.fromJson(json['image'] as Map),
-      json['duration'] as int ?? 0,
-      (json['width'] as num)?.toDouble() ?? 0,
-      (json['height'] as num)?.toDouble() ?? 0);
+    json['type'] as String ?? '',
+    json['image'] == null ? null : Picture.fromJson(json['image'] as Map),
+    json['duration'] as int ?? 0,
+    (json['width'] as num)?.toDouble() ?? 0,
+    (json['height'] as num)?.toDouble() ?? 0,
+  );
 }
 
 Map<String, dynamic> _$VideoToJson(Video instance) => <String, dynamic>{
@@ -20,5 +21,5 @@ Map<String, dynamic> _$VideoToJson(Video instance) => <String, dynamic>{
       'image': instance.image,
       'duration': instance.duration,
       'width': instance.width,
-      'height': instance.height
+      'height': instance.height,
     };

@@ -8,30 +8,32 @@ part of 'shortcuts.dart';
 
 ShortcutsData _$ShortcutsDataFromJson(Map json) {
   return ShortcutsData(
-      json['title'] as String,
-      json['recommendCount'] as int,
-      (json['shortcuts'] as List)
-          ?.map((e) => e == null ? null : Shortcut.fromJson(e as Map))
-          ?.toList());
+    json['title'] as String,
+    json['recommendCount'] as int,
+    (json['shortcuts'] as List)
+        ?.map((e) => e == null ? null : Shortcut.fromJson(e as Map))
+        ?.toList(),
+  );
 }
 
 Map<String, dynamic> _$ShortcutsDataToJson(ShortcutsData instance) =>
     <String, dynamic>{
       'title': instance.title,
       'recommendCount': instance.recommendCount,
-      'shortcuts': instance.shortcuts
+      'shortcuts': instance.shortcuts,
     };
 
 Shortcut _$ShortcutFromJson(Map json) {
   return Shortcut(
-      json['id'] as String,
-      json['type'] as String,
-      json['contentType'] as String,
-      json['content'] as String,
-      json['url'] as String,
-      json['picUrl'] as String,
-      json['style'] as String ?? '',
-      json['tag'] as String ?? '');
+    json['id'] as String,
+    json['type'] as String,
+    json['contentType'] as String,
+    json['content'] as String,
+    json['url'] as String,
+    json['picUrl'] as String,
+    json['style'] as String ?? '',
+    json['tag'] as String ?? '',
+  );
 }
 
 Map<String, dynamic> _$ShortcutToJson(Shortcut instance) => <String, dynamic>{
@@ -42,5 +44,5 @@ Map<String, dynamic> _$ShortcutToJson(Shortcut instance) => <String, dynamic>{
       'url': instance.url,
       'picUrl': instance.picUrl,
       'style': instance.style,
-      'tag': instance.tag
+      'tag': instance.tag,
     };
