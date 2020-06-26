@@ -51,7 +51,7 @@ class _PictureDetailPageState extends State<PictureDetailPage> {
                 return PhotoViewGalleryPageOptions(
                   imageProvider:
                       CachedNetworkImageProvider(picture.picUrl, headers: {
-                    key_access_token: LoginState.accessToken,
+                    key_access_token: LoginUserState.accessToken,
                   }),
                   heroAttributes: PhotoViewHeroAttributes(tag: picture),
                   minScale: PhotoViewComputedScale.contained,

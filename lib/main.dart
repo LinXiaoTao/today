@@ -8,7 +8,7 @@ import 'package:today/data/network/request.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await LoginState.init();
+  await LoginUserState.init();
   await ApiRequest.initDio();
   runApp(TodayApp());
 }
@@ -24,7 +24,7 @@ class TodayApp extends StatelessWidget {
           accentColor: AppColors.accentColor,
           scaffoldBackgroundColor: Color(0xfff0f3f5),
           appBarTheme: AppBarTheme(color: AppColors.statusBarColor)),
-      home: (LoginState.isLogin ? MainPage() : LoginPage()),
+      home: (LoginUserState.isLogin ? MainPage() : LoginPage()),
     );
   }
 }

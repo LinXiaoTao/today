@@ -87,7 +87,7 @@ class ApiRequest {
     return _dio.post("/1.0/users/saveDeviceInfo", data: {
       "instanceid": _saDeviceId,
       "imei": "",
-      "guid": LoginState.deviceId
+      "guid": LoginUserState.deviceId
     }).then((value) {
       return value.data["success"];
     });
@@ -140,7 +140,7 @@ class ApiRequest {
     return _dio
         .get("/1.0/app_auth_tokens.refresh",
             options:
-                Options(headers: {key_refresh_token: LoginState.refreshToken}))
+                Options(headers: {key_refresh_token: LoginUserState.refreshToken}))
         .then((value) {
       return value.data["success"];
     });
@@ -361,7 +361,7 @@ class ApiRequest {
       (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
           (client) {
         client.findProxy = (url) {
-          return "PROXY 192.168.2.103:8888";
+          return "PROXY 192.168.2.105:8888";
         };
         //抓Https包设置
         client.badCertificateCallback =
@@ -374,7 +374,7 @@ class ApiRequest {
     _init = true;
     debugPrint("init success");
 
-    if (LoginState.isLogin) {
+    if (LoginUserState.isLogin) {
       loginSuccess();
     }
   }
@@ -385,7 +385,7 @@ class ApiRequest {
     debugPrint("启动刷新 token: $value");
     if (value) {
       /// 刷新缓存
-      await LoginState.init();
+      await LoginUserState.init();
     }
 
     _scheduleRefreshTokenTask();
@@ -417,7 +417,7 @@ class ApiRequest {
       debugPrint("定时刷新 token: $value");
       if (value) {
         /// 刷新缓存
-        await LoginState.init();
+        await LoginUserState.init();
       }
     });
   }

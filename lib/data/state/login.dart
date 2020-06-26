@@ -2,13 +2,13 @@ import 'package:today/data/storage/simple_storage.dart';
 import 'package:today/data/constants.dart';
 import 'package:flutter/widgets.dart';
 
-class LoginState {
+class LoginUserState {
   static bool isLogin = false;
   static String accessToken = "";
   static String deviceId = "";
   static String refreshToken = "";
 
-  LoginState._();
+  LoginUserState._();
 
   static init() async {
     accessToken = await SimpleStorage.getString(key_access_token);

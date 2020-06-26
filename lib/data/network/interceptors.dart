@@ -23,8 +23,8 @@ class BusinessInterceptor implements Interceptor {
   @override
   onRequest(RequestOptions options) async {
     /// token
-    if (LoginState.accessToken.isNotEmpty) {
-      options.headers[key_access_token] = LoginState.accessToken;
+    if (LoginUserState.accessToken.isNotEmpty) {
+      options.headers[key_access_token] = LoginUserState.accessToken;
     }
     return options;
   }
@@ -67,7 +67,7 @@ class BusinessInterceptor implements Interceptor {
           if (value) {
             /// 刷新缓存
             _refreshTokenError = 0;
-            await LoginState.init();
+            await LoginUserState.init();
           }
         }).catchError((value) {
           _refreshToken = false;

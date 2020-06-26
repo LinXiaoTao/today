@@ -26,7 +26,7 @@ class AppNetWorkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!LoginState.isLogin) {
+    if (!LoginUserState.isLogin) {
       return SizedBox(
         width: 0,
         height: 0,
@@ -50,7 +50,7 @@ class AppNetWorkImage extends StatelessWidget {
 
 createImageProvider(String src) {
   return CachedNetworkImageProvider(src, headers: {
-    key_access_token: LoginState.accessToken,
+    key_access_token: LoginUserState.accessToken,
   });
 }
 
