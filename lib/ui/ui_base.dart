@@ -151,6 +151,11 @@ class AppColors {
   static const darkGrey = Color(0xFFF0F3F5);
 
   static final commentBackgroundGray = Colors.grey[100];
+
+  // 按钮相关
+  static final primaryButtonColor = yellow;
+  static final disableButtonColor = Color(0xFFBFBFBF);
+
 }
 
 class AppDimensions {
@@ -159,4 +164,6 @@ class AppDimensions {
   static final primaryPadding = 12.0;
 
   static final smallPadding = 6.0;
+
+  static final buttonRadius = 4.0;
 }
